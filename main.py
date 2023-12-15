@@ -8,3 +8,8 @@ else:
 
 with open('wizard_of_oz.txt', 'r', encoding='utf-8') as f:
     text = f.read()
+
+
+# Get the set of unique characters in the text.
+chars = sorted(set(text))
+print(chars)
