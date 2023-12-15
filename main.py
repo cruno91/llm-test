@@ -1,4 +1,6 @@
 import torch
+
+# Check if Metal is available.
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
     x = torch.ones(1, device=mps_device)
@@ -6,6 +8,7 @@ if torch.backends.mps.is_available():
 else:
     print ("MPS device not found.")
 
+# Open the text file.
 with open('wizard_of_oz.txt', 'r', encoding='utf-8') as f:
     text = f.read()
 
@@ -28,3 +31,7 @@ decode = lambda x: ''.join([ints_to_strings[i] for i in x])
 # print(encoded)
 # decoded = decode(encoded)
 # print(decoded)
+
+# Convert the text to integers.
+# dtype = torch.long: 64-bit integer (signed) - Important for pytorch to know the type of data.
+data = torch.tensor(encode(text), dtype=torch.long)
