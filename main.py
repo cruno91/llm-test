@@ -35,3 +35,11 @@ decode = lambda x: ''.join([ints_to_strings[i] for i in x])
 # Convert the text to integers.
 # dtype = torch.long: 64-bit integer (signed) - Important for pytorch to know the type of data.
 data = torch.tensor(encode(text), dtype=torch.long)
+
+# You have to split your training data corpus into chunks so that you create output like the original, but not copies
+# of the original.
+# The chunks are also needed to be able to scale the model.
+# It's called the bi-gram language model.
+block_size = 8
+# Number of blocks you can do in parallel.
+batch_size = 4
