@@ -7,8 +7,8 @@ if torch.backends.mps.is_available():
 
 torch_rand1 = torch.rand(100, 100, 100, 100).to(mps_device)
 torch_rand2 = torch.rand(100, 100, 100, 100).to(mps_device)
-np_rand1 = np.random.rand(100, 100, 100, 100)
-np_rand2 = np.random.rand(100, 100, 100, 100)
+np_rand1 = torch.rand(100, 100, 100, 100)
+np_rand2 = torch.rand(100, 100, 100, 100)
 
 # GPU (Metal).
 start_time = time.time()
