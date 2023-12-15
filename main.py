@@ -13,3 +13,18 @@ with open('wizard_of_oz.txt', 'r', encoding='utf-8') as f:
 # Get the set of unique characters in the text.
 chars = sorted(set(text))
 print(chars)
+
+# Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
+# Encoder and a decoder:
+# Encoder: converts a string to an integer.
+strings_to_ints = {c: i for i, c in enumerate(chars)}
+encode = lambda s: [strings_to_ints[c] for c in s]
+# Decoder: converts an integer to a string.
+ints_to_strings = {i: c for i, c in enumerate(chars)}
+decode = lambda x: ''.join([ints_to_strings[i] for i in x])
+
+# Convert the text to integers.
+# encoded = encode("Hello")
+# print(encoded)
+# decoded = decode(encoded)
+# print(decoded)
