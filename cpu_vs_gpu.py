@@ -4,9 +4,9 @@ import time
 
 if torch.backends.mps.is_available():
     mps_device = torch.device("mps")
-    print ("MPS device found.")
+    print("MPS device found.")
 else:
-    print ("MPS device not found.")
+    print("MPS device not found.")
     exit()
 
 torch_rand1 = torch.rand(100, 100, 100, 100).to(mps_device)
