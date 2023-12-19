@@ -149,12 +149,45 @@ tensor3 = torch.tensor([7, 8, 9])
 # Use this to stack blocks to make a batch.
 stacked_tensor = torch.stack([tensor1, tensor2, tensor3])
 print(stacked_tensor)
+print(" ")
+print("------------")
+print(" ")
 
 # nn.linear function
 print("nn.linear function")
 import torch.nn as nn
 sample = torch.tensor([10., 10., 10.])
+# Linear transformation.
 linear = nn.Linear(3, 3, bias=False)
 print(linear(sample))
+# When apply weight or bias under nn.module it will learn those
+# and become better and train based on how accurate those are
+# or how close parameters bring it to desired output.
+# Docs > torch.nn
+print(" ")
+print("------------")
+print(" ")
 
-# 57:27
+# Softmax function
+# Convert a tensor of numbers into a tensor of probabilities.
+print("Softmax function")
+# [1.0, 2.0, 3.0] -> [x, y, z]
+# Exponentiate each of those numbers.
+# (1).exp() = e^1 = 2.718281828459045
+# (2).exp() = e^2 = 7.38905609893065
+# (3).exp() = e^3 = 20.085536923187668
+# Add them up.
+# 2.718281828459045 + 7.38905609893065 + 20.085536923187668 = 30.19287485057736
+# Divide each number by the sum.
+# 2.718281828459045 / 30.19287485057736 = 0.09003057317038046
+# 7.38905609893065 / 30.19287485057736 = 0.24472847105479764
+# 20.085536923187668 / 30.19287485057736 = 0.6652409557748219
+# The sum of the probabilities should be 1.
+# 0.09003057317038046 + 0.24472847105479764 + 0.6652409557748219 = 1.0
+# The softmax function is used to convert a tensor of numbers into a tensor of probabilities.
+import torch.nn.functional as F
+# Create a tensor.
+tensor1 = torch.tensor([1.0, 2.0, 3.0])
+# Apply softmax function.
+softmax_output = F.softmax(tensor1, dim=0)
+print(softmax_output)
