@@ -156,3 +156,5 @@ import torch.nn as nn
 sample = torch.tensor([10., 10., 10.])
 linear = nn.Linear(3, 3, bias=False)
 print(linear(sample))
+
+# 57:27
