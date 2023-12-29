@@ -79,3 +79,12 @@ print(y)
 #     context = x[:t+1]
 #     target = y[t]
 #     print("when input is", context, "target is", target)
+
+# Create the model.
+class BigramLanguageModel(nn.Module):
+    def __init__(self, vocab_size):
+        super().__init__()
+        # Embedding layer: Converts an integer to a vector.
+        # Lookup table tokens in a block.  Each token is a number with a probability distribution
+        # across the vocabulary to predict the next token.
+        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
