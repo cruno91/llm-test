@@ -157,6 +157,7 @@ print(" ")
 print("nn.linear function")
 import torch.nn as nn
 sample = torch.tensor([10., 10., 10.])
+print(sample)
 # Linear transformation.
 linear = nn.Linear(3, 3, bias=False)
 print(linear(sample))
@@ -189,5 +190,28 @@ import torch.nn.functional as F
 # Create a tensor.
 tensor1 = torch.tensor([1.0, 2.0, 3.0])
 # Apply softmax function.
+# dim=0: sum of the probabilities should be 1. - 1 dimension, a line
 softmax_output = F.softmax(tensor1, dim=0)
 print(softmax_output)
+print(" ")
+print("------------")
+print(" ")
+
+# Embedding vectors
+# Stores some information about a word or *character*, like from a vocabulary.
+print("Embedding vectors")
+# A vector or numerical representation of a character.
+# Initialize the embedding layer.
+voacb_size = 1000
+embedding_dim = 100
+embedding = nn.Embedding(voacb_size, embedding_dim)
+# Create some input indicies.
+input_indicies = torch.LongTensor([1, 5, 3, 2])
+# Apply the embedding layer.
+embedding_output = embedding(input_indicies)
+# The output will be a tensor of shape (4, 100), where 4 is the number of inputs
+# and 100 is the dimensionality of the embedding vectors.
+print(embedding_output.shape)
+print(" ")
+print("------------")
+print(" ")
