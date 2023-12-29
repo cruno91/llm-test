@@ -297,3 +297,9 @@ print(" ")
 # You might overshoot the minimum (bottom of the slope).
 # You need to take smaller steps so the parameters don't change too
 # much.
+
+# AdamW optimizer
+# AdamW takes a generalized form of gradient descent and adds
+# a momentum term (weight decay).
+# The weight significance shrinks as gradient descent flattens out
+# so that certain weights don't become too large.
