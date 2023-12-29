@@ -254,3 +254,18 @@ print(a @ b)
 print(" ")
 print("------------")
 print(" ")
+
+# In PyTorch you cannot multiply integers and floats.
+print("In PyTorch you cannot multiply integers and floats.")
+int_64 = torch.randint(1, (3, 2))
+float_32 = torch.rand(2,3)
+# result = torch.matmul(int_64, float_32)
+# Above will fail.
+# You can change the type of the tensor.
+int_64 = torch.randint(1, (3, 2)).float()
+result = torch.matmul(int_64, float_32)
+print(result)
+print(" ")
+print("------------")
+print(" ")
+
