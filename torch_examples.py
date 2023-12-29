@@ -282,7 +282,7 @@ print(" ")
 # (not even 2% chance).
 # You want to minimize loss and increase prediction accuracy.
 # Take the derivative of the current point of where it's at now
-# and move it in a different driection.
+# and move it in a different direction.
 # Picture a slope with a line going across the top of it which hits
 # the slope at a point.  The line is the loss function.
 # Take the derivative of the current point and move it in a different direction.
@@ -290,3 +290,10 @@ print(" ")
 # The point should be moved to where the derivative is heading down
 # the hill.
 # torch.optim is a package implementing various optimization algorithms.
+
+# Learning rate
+# Say you decide you need to take a big step in the direction of
+# the derivative (Gradient descent).
+# You might overshoot the minimum (bottom of the slope).
+# You need to take smaller steps so the parameters don't change too
+# much.
