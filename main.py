@@ -148,3 +148,14 @@ class BigramLanguageModel(nn.Module):
             # So we have 0 then we have 1, then 1 and we have 2.  Keep concatenating more tokens onto it.
             index = torch.cat([index, index_next], dim=1)  # (B, T+1)
         return index
+
+
+vocab_size = len(chars)
+
+model = BigramLanguageModel(vocab_size)
+m = model.to(device)
+
+# toch.long is int64 (8 bytes).
+context = torch.zeros((1, 1), dtype=torch.long, device=device)
+generated_chars = decode(m.generate(context, max_new_tokens=500)[0].tolist())
+print(generated_chars)
