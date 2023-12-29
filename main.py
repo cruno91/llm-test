@@ -89,7 +89,7 @@ class BigramLanguageModel(nn.Module):
         # across the vocabulary to predict the next token.
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
 
-    def forward(self, index, targets):
+    def forward(self, index, targets=None):
         # Logits are the output of the model before the softmax activation function.
         # The logits are the raw values that are passed to the activation function.
         # The activation function then normalizes the logits and converts them to a probability distribution.
@@ -107,19 +107,25 @@ class BigramLanguageModel(nn.Module):
         # The probability of b is 0.2.
         # The probability of c is 0.3.
         logits = self.token_embedding_table(index)
-        # batch, time
-        # (sequence of integers, we don't know next token, because some we don't know yet),
-        # channels (vocab size)
-        # Shape is BxTxC.
-        B, T, C = logits.shape
-        # Because we're paying attention to the vocabulary (channels), the batch
-        # and time dimensions are combined.
-        # As long as the logits and the targets are the same batch and time we should be alright.
-        # PyTorch expects the logits to be a 2D tensor and the targets to be a 1D tensor which is why we use
-        # view() to reshape the tensors.
-        # Making the first parameter a single parameter of batch by time.
-        logits = logits.view(B*T, C)
-        targets = targets.view(B*T)
-        # cross_entropy is way of measuring loss.
-        loss = F.cross_entropy(logits, targets)
-        return logits
+
+        # Because targets is none, the loss is none and the code does not execute.
+        # Just use the logits which are three-dimensional.
+        if targets is None:
+            loss = None
+        else:
+            # batch, time
+            # (sequence of integers, we don't know next token, because some we don't know yet),
+            # channels (vocab size)
+            # Shape is BxTxC.
+            B, T, C = logits.shape
+            # Because we're paying attention to the vocabulary (channels), the batch
+            # and time dimensions are combined.
+            # As long as the logits and the targets are the same batch and time we should be alright.
+            # PyTorch expects the logits to be a 2D tensor and the targets to be a 1D tensor which is why we use
+            # view() to reshape the tensors.
+            # Making the first parameter a single parameter of batch by time.
+            logits = logits.view(B*T, C)
+            targets = targets.view(B*T)
+            # cross_entropy is way of measuring loss.
+            loss = F.cross_entropy(logits, targets)
+        return logits, loss
