@@ -215,3 +215,42 @@ print(embedding_output.shape)
 print(" ")
 print("------------")
 print(" ")
+
+# Matrix multiplication.
+# The dot product of two vectors.
+# Given two vectors:
+# [1, 2, 3]
+# [4, 5, 6]
+# Multiply the corresponding elements and add them up to get the dot product.
+# 1 * 4 + 2 * 5 + 3 * 6 = 32
+# The 2 matrix need to be able to be multiplied.
+# A 3x2 and a 2x3 can be multiplied.
+# A 3x4 and a 5x1 cannot be multiplied.
+# The number of columns in the first matrix must match the number of rows in the second matrix.
+# [
+#   1, 2
+#   3, 4
+#   5, 6
+# ]
+# [
+#   2,  8,  9
+#   10, 11, 12
+# ]
+# (1x7)+(2x10) = 27
+# (1x8)+(2x11) = 30
+# (1x9)+(2x12) = 33
+# (3x7)+(4x10) = 61
+# (3x8)+(4x11) = 68
+# (3x9)+(4x12) = 75
+# (5x7)+(6x10) = 95
+# (5x8)+(6x11) = 106
+# (5x9)+(6x12) = 117
+print("Matrix multiplication")
+a = torch.tensor([[1, 2], [3, 4], [5, 6]])
+b = torch.tensor([[2, 8, 9], [10, 11, 12]])
+# The @ symbol is the matrix multiplication operator in pytorch.
+# You can also do print(torch.matmul(a, b))
+print(a @ b)
+print(" ")
+print("------------")
+print(" ")
