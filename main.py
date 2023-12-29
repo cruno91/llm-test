@@ -46,6 +46,10 @@ data = torch.tensor(encode(text), dtype=torch.long)
 block_size = 8
 # Number of blocks you can do in parallel.
 batch_size = 4
+# Number of iterations.
+max_iters = 10000
+# Learning rate.
+learning_rate = 3e-4 # 0.0003
 
 # Get the training and validation splits.
 n = int(0.8*len(data))
