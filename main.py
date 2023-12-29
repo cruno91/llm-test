@@ -129,3 +129,22 @@ class BigramLanguageModel(nn.Module):
             # cross_entropy is way of measuring loss.
             loss = F.cross_entropy(logits, targets)
         return logits, loss
+
+    def generate(self, index, max_new_tokens):
+        # Index is (Batch, Time) array of indicies in the current context.
+        for _ in range(max_new_tokens):
+            # Get the logits (predictions).
+            logits, loss = self.forward(index)
+            # Focus only on the last time step.
+            # Only care about single previous character because it's a bigram model.  No context before.
+            logits = logits[:, -1, :]  # Becomes (B, C)
+            # Apply softmax to get the probabilities.
+            probs = F.softmax(logits, dim=-1)  # (B, C)
+            # Sample from the probability distribution.
+            index_next = torch.multinomial(probs, num_samples=1)  # (B, 1)
+            # Append sampled index to the running sequence.
+            # We have a time dimension with 1 element in the 0th position,
+            # so when we generate a token we need to add 1 to that position.
+            # So we have 0 then we have 1, then 1 and we have 2.  Keep concatenating more tokens onto it.
+            index = torch.cat([index, index_next], dim=1)  # (B, T+1)
+        return index
