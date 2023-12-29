@@ -303,3 +303,17 @@ print(" ")
 # a momentum term (weight decay).
 # The weight significance shrinks as gradient descent flattens out
 # so that certain weights don't become too large.
+
+# logits.view
+print ("logits.view")
+a = torch.rand(2, 3, 5)
+print(a.shape)
+# Unbpack the shape.
+x, y, z = a.shape
+# Reshape as tensor.
+a = a.view(x, y, z)
+print(x, y, z)
+print(a.shape)
+print(" ")
+print("------------")
+print(" ")
