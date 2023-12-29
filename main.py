@@ -117,6 +117,7 @@ class BigramLanguageModel(nn.Module):
         # As long as the logits and the targets are the same batch and time we should be alright.
         # PyTorch expects the logits to be a 2D tensor and the targets to be a 1D tensor which is why we use
         # view() to reshape the tensors.
+        # Making the first parameter a single parameter of batch by time.
         logits = logits.view(B*T, C)
         targets = targets.view(B*T)
         # cross_entropy is way of measuring loss.
