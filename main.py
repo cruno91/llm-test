@@ -61,7 +61,7 @@ def get_batch(split):
     # Take a random integer between 0 and the length of the data minus the block size.
     # So if you get the index that's at the length of the n minus block size you'll still have a block size of 8.
     ix = torch.randint(len(data) - block_size, (batch_size,))
-    print(ix)
+    # print(ix)
     # Get the data from the random index to the random index plus the block size.
     x = torch.stack([data[i:i+block_size] for i in ix])
     # Get the data from the random index plus 1 to the random index plus the block size plus 1.
@@ -163,3 +163,26 @@ m = model.to(device)
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 generated_chars = decode(m.generate(context, max_new_tokens=500)[0].tolist())
 print(generated_chars)
+
+# Create the optimizer.
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+
+# Train the model.
+# Standard training loop for basic models.
+for i in range(max_iters):
+    # Get the batch.
+    xb, yb = get_batch("train")
+    # Get the logits and the loss.
+    logits, loss = model.forward(xb, yb)
+    # Zero out the gradients.
+    # Set the gradient to none because it occupies less space than default of 0 (int64).
+    # Usually only want it on if you are doing large recurrent neural nets which need to
+    # understand previous context.
+    # If it's 0 it averages the gradients (gradient accumulation).
+    optimizer.zero_grad(set_to_none=True)
+    # Backpropagate the loss.
+    loss.backward()
+    # Update the weights.
+    optimizer.step()
+    # Print the loss.
+print(loss.item())
