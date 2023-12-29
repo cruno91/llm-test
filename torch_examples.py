@@ -269,3 +269,24 @@ print(" ")
 print("------------")
 print(" ")
 
+# Gradient descent.
+# The gradient is the slope of the loss function.
+# The loss function is the difference between the predicted value
+# and the actual value.
+# ...or the mean squared error.
+# You need to pass nn.Module to the optimizer (class).
+# Example: If you have 80 characters in vocab and have just
+# started model with no training and random weights.
+# There is a 1 in 80 chance the next token is predicted successfully.
+# How to measure the loss is the negative log likelihood ( -ln(1/80) )
+# (not even 2% chance).
+# You want to minimize loss and increase prediction accuracy.
+# Take the derivative of the current point of where it's at now
+# and move it in a different driection.
+# Picture a slope with a line going across the top of it which hits
+# the slope at a point.  The line is the loss function.
+# Take the derivative of the current point and move it in a different direction.
+# Gradient descent is an optimizer.
+# The point should be moved to where the derivative is heading down
+# the hill.
+# torch.optim is a package implementing various optimization algorithms.
