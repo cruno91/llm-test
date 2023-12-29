@@ -1,11 +1,14 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 # Check if Metal is available.
 if torch.backends.mps.is_available():
-    mps_device = torch.device("mps")
-    x = torch.ones(1, device=mps_device)
+    device = torch.device("mps")
+    x = torch.ones(1, device=device)
     print(x)
 else:
+    device = torch.device("cpu")
     print("MPS device not found.")
 
 # Open the text file.
@@ -43,3 +46,28 @@ data = torch.tensor(encode(text), dtype=torch.long)
 block_size = 8
 # Number of blocks you can do in parallel.
 batch_size = 4
+
+# Get the training and validation splits.
+n = int(0.8*len(data))
+train_data, val_data = data[:n], data[n:]
+
+# Get a batch of data.
+def get_batch(split):
+    data = train_data if split == "train" else val_data
+    # Take a random integer between 0 and the length of the data minus the block size.
+    # So if you get the index that's at the length of the n minus block size you'll still have a block size of 8.
+    ix = torch.randint(len(data) - block_size, (batch_size,))
+    print(ix)
+    # Get the data from the random index to the random index plus the block size.
+    x = torch.stack([data[i:i+block_size] for i in ix])
+    # Get the data from the random index plus 1 to the random index plus the block size plus 1.
+    y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+    # Move the data to the device.
+    x, y = x.to(device), y.to(device)
+    return x, y
+
+x, y = get_batch("train")
+print('inputs:')
+print(x)
+print('targets:')
+print(y)
