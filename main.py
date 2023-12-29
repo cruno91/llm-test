@@ -88,3 +88,37 @@ class BigramLanguageModel(nn.Module):
         # Lookup table tokens in a block.  Each token is a number with a probability distribution
         # across the vocabulary to predict the next token.
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+
+    def forward(self, index, targets):
+        # Logits are the output of the model before the softmax activation function.
+        # The logits are the raw values that are passed to the activation function.
+        # The activation function then normalizes the logits and converts them to a probability distribution.
+        # Logits are the unnormalized output of a neural network.
+        # Layman: Logits are a bunch of normalized floating point numbers.
+        # Say you have [2, 4, 6] and you want to normalize it.
+        # You would divide each number by the sum of the numbers.
+        # 2 / (2 + 4 + 6) = 0.1
+        # 4 / (2 + 4 + 6) = 0.2
+        # 6 / (2 + 4 + 6) = 0.3
+        # The sum of the numbers is 1.
+        # This becomes [0.1, 0.2, 0.3].
+        # Say those equate to the probabilities of a, b, and c.
+        # The probability of a is 0.1.
+        # The probability of b is 0.2.
+        # The probability of c is 0.3.
+        logits = self.token_embedding_table(index)
+        # batch, time
+        # (sequence of integers, we don't know next token, because some we don't know yet),
+        # channels (vocab size)
+        # Shape is BxTxC.
+        B, T, C = logits.shape
+        # Because we're paying attention to the vocabulary (channels), the batch
+        # and time dimensions are combined.
+        # As long as the logits and the targets are the same batch and time we should be alright.
+        # PyTorch expects the logits to be a 2D tensor and the targets to be a 1D tensor which is why we use
+        # view() to reshape the tensors.
+        logits = logits.view(B*T, C)
+        targets = targets.view(B*T)
+        # cross_entropy is way of measuring loss.
+        loss = F.cross_entropy(logits, targets)
+        return logits
