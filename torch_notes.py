@@ -318,7 +318,7 @@ print(" ")
 print("------------")
 print(" ")
 
-# Optimizers
+# Optimizers:
 # Mean Squared Error (MSE): A common loss function used in regression
 # problems, where the goal is to predict a continous output. It measures
 # the average squared difference between the predicted and actual values,
