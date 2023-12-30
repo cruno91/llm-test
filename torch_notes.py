@@ -349,3 +349,40 @@ print(" ")
 # AdamW: Modification of Adam that adds weight decay to the parameter
 # updates. Helps to regularize the model and can improve generaization
 # performance.
+
+# Activation functions:
+# Activation functions in PyTorch, and in neural networks in general,
+# play a crucial role in helping the network make complex decisions.
+# Without activation functions, our neural network would just be doing
+# a bunch of math without really being able to make decisions or
+# understand complexities.
+# They help the network learn from the data by adding non-linear
+# properties to it. This means the network can understand more
+# complicated things than if it were just doing straight-line
+# calculations.
+# ReLU: If a number is negative, it is replaced with 0. If it is
+# positive, it is left unchanged.
+# Offers a non-lineartity to linear models than if you were to have
+# 100 leayrs of linear models.
+# This is like a filter that passes on positive values and blocks
+# negative values.
+
+# Sigmoid:
+# This one squishes the values between 0 and 1, sort of like deciding
+# how "sure" the network is about something.
+# If the sigmoid outputs a value close to 0, it means the network is
+# not very sure about the prediction.
+# If the sigmoid outputs a value close to 1, it means the network is
+# very sure about the prediction.
+# Sigmoid is good for problems where you want to decide between two
+# classes, like "yes" or "no".
+# It is also good for problems where you want to predict the probability
+# of something happening, like the probability of a cat being in a
+# picture.
+# Similar to softmax, but softmax prioritizes the largest values and
+# squishes the smallest values. Softmax is like sigmoid on steroids.
+
+# Tanh:
+# Similar to sigmoid, but it squishes values between -1 and 1.
+# This activation function is often used in the hidden layers of
+# neural networks.
