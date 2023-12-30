@@ -50,6 +50,11 @@ batch_size = 4
 max_iters = 10000
 # Learning rate.
 learning_rate = 3e-4 # 0.0003
+# Eval iters
+eval_iters = 250
+# Dropout rate.
+# Take 20% of the neurons and turn them off.
+dropout = 0.2
 
 # Get the training and validation splits.
 n = int(0.8*len(data))
@@ -75,6 +80,25 @@ print('inputs:')
 print(x)
 print('targets:')
 print(y)
+
+# Estimate the loss.
+# torch.no_grade() is a decorator that disables gradient calculation.
+# This is useful for inference because you don't need to calculate gradients.
+# It also reduces memory consumption for computations that would otherwise have requires_grad=True.
+@torch.no_grad()
+def estimate_loss():
+    out = {}
+    # Dropout is turned off in evaluation.
+    model.eval()
+    for split in ["train", "val"]:
+        losses = torch.zeros(eval_iters)
+        for k in range(eval_iters):
+            X, Y = get_batch(split)
+            logits, loss = model(X, Y)
+            losses[k] = loss.item()
+        out[split] = losses.mean()
+    model.train()
+    return out
 
 # Bigram language model.
 # x = train_data[:block_size]
@@ -170,6 +194,9 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 # Train the model.
 # Standard training loop for basic models.
 for i in range(max_iters):
+    if i % eval_iters == 0:
+        losses = estimate_loss()
+        print(f'step: {i}, train loss: {losses["train"]:.3f}, val loss: {losses["val"]:.3f}')
     # Get the batch.
     xb, yb = get_batch("train")
     # Get the logits and the loss.
@@ -186,3 +213,5 @@ for i in range(max_iters):
     optimizer.step()
     # Print the loss.
 print(loss.item())
+
+
