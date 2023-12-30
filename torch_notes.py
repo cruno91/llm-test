@@ -360,6 +360,7 @@ print(" ")
 # properties to it. This means the network can understand more
 # complicated things than if it were just doing straight-line
 # calculations.
+
 # ReLU: If a number is negative, it is replaced with 0. If it is
 # positive, it is left unchanged.
 # Offers a non-lineartity to linear models than if you were to have
@@ -386,3 +387,5 @@ print(" ")
 # Similar to sigmoid, but it squishes values between -1 and 1.
 # This activation function is often used in the hidden layers of
 # neural networks.
+
+
