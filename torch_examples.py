@@ -317,3 +317,35 @@ print(a.shape)
 print(" ")
 print("------------")
 print(" ")
+
+# Optimizers
+# Mean Squared Error (MSE): A common loss function used in regression
+# problems, where the goal is to predict a continous output. It measures
+# the average squared difference between the predicted and actual values,
+# and is often used to train neural networks for regression tasks.
+
+# Gradient Descent (GD): An optimization algorithim used to minimize
+# the loss function of a machine learning model.  The loss function
+# measures how well the model is able to predict the target variable
+# based on the input features. The idea of GD is to iteratively
+# adjust the model parameters in the direction of the steepest descent
+# of the loss function.
+
+# Momentium: An extension of SGD that adds a "momentum" term to the
+# parameter updates.  This term helps smooth out the updates and allows
+# the optimizer to continue moving in the right direction, even if the
+# gradient changes direction or varies in magnitude. Useful for training
+# deep neural networks.
+
+# RMSprop: Uses a moving average of squared gradients to normalize the
+# rate of each parameter.  Helps avoid oscillations in the parameter updates
+# and can improve the rate of convergence.
+
+# Adam: Uses moving average of both the gradient and its squared value to
+# adapt the learning rate of each parameter. Often  used as default for
+# deep learning models
+# Combines the advantages of RMSprop and momentum.
+
+# AdamW: Modification of Adam that adds weight decay to the parameter
+# updates. Helps to regularize the model and can improve generaization
+# performance.
