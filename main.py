@@ -17,6 +17,8 @@ max_iterations = 1000
 learning_rate = 3e-3  # 0.003
 eval_iterations = 250
 n_embed = 384  # Amount of neurons in the embedding layer.
+n_layer = 4  # Amount of layers.
+
 
 # Open the text file.
 with open('wizard_of_oz.txt', 'r', encoding='utf-8') as file:
@@ -88,11 +90,34 @@ class GPTLanguageModel(nn.Module):
         # Positional embedding layer.
         # Each letter index has a corresponding embedding vector.
         self.positioning_embedding_table = nn.Embedding(block_size, n_embed)
+        # How many decoder layers to use simultaneously.
+        # Asterisk is for repeating code in the brackets.
+        # Will make 4 of the "Block"s (decoder layers) simultaneously.
+        self.blocks = nn.Sequential(*[Block(n_embed, n_head=n_head) for _ in range(n_layer)])
+        # Final layer normalization.
+        # Helps model converge better.
+        self.ln_f = nn.LayerNorm(n_embed)
+        # Linear layer for the language model header.
+        self.lm_header = nn.Linear(n_embed, vocab_size)
 
     # Forward pass.
     def forward(self, index, targets=None):
         # Get the embeddings.
         logits = self.token_embedding_table(index)
+
+        # idx and targets are both (batch, time) tensors of integers.
+        token_embeddings = self.token_embedding_table(index)
+        # Get the positional embeddings.
+        positinoal_embeddings = self.positioning_embedding_table(torch.arange(time, device=device))
+        # Use "x" to save memory?
+        # Add the positional embeddings to the token embeddings.
+        x = token_embeddings + positinoal_embeddings  # (embeddings)
+        # Get the blocks.
+        x = self.blocks(x)  # (blocks)
+        # Get the final layer normalization.
+        x = self.ln_f(x)  # (layer norm)
+        # Get the logits.
+        logits = self.lm_header(x)
 
         if targets is not None:  # Training mode.
             loss = None
