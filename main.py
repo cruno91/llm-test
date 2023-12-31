@@ -13,9 +13,10 @@ else:
 # Hyperparameters.
 block_size = 8
 batch_size = 4
-max_iters = 1000
+max_iterations = 1000
 learning_rate = 3e-3  # 0.003
-eval_iters = 250
+eval_iterations = 250
+n_embed = 384  # Amount of neurons in the embedding layer.
 
 # Open the text file.
 with open('wizard_of_oz.txt', 'r', encoding='utf-8') as file:
@@ -62,9 +63,9 @@ def estimate_loss():
     model.eval()
     for split in ["train", "val"]:
         # Create a tensor to store the losses.
-        losses = torch.zeros(eval_iters)
+        losses = torch.zeros(eval_iterations)
         # Get the losses.
-        for k in range(eval_iters):
+        for k in range(eval_iterations):
             # Get the batch.
             x, y = get_batch(split)
             # Forward pass.
@@ -83,7 +84,10 @@ class GPTLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         # Embedding layer.
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embed)
+        # Positional embedding layer.
+        # Each letter index has a corresponding embedding vector.
+        self.positioning_embedding_table = nn.Embedding(block_size, n_embed)
 
     # Forward pass.
     def forward(self, index, targets=None):
@@ -128,9 +132,9 @@ model = m.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
 # Train the model.
-for i in range(max_iters):
+for i in range(max_iterations):
     # Print the training loss.
-    if i % eval_iters == 0:
+    if i % eval_iterations == 0:
         losses = estimate_loss()
         print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
 
