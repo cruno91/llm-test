@@ -76,7 +76,8 @@ print(" ")
 # Probablity distributions.
 print("Probablity distributions.")
 prob = torch.tensor([0.1, 0.9])
-# 10% or 90%, each probability points to the index of the probability in the tensor.
+# 10% or 90%, each probability points to the index of the probability in the
+# tensor.
 # Draw 5 samples from the multinomial distribution.
 samples = torch.multinomial(prob, num_samples=10, replacement=True)
 print(samples)
@@ -185,7 +186,8 @@ print("Softmax function")
 # 20.085536923187668 / 30.19287485057736 = 0.6652409557748219
 # The sum of the probabilities should be 1.
 # 0.09003057317038046 + 0.24472847105479764 + 0.6652409557748219 = 1.0
-# The softmax function is used to convert a tensor of numbers into a tensor of probabilities.
+# The softmax function is used to convert a tensor of numbers into a tensor of
+# probabilities.
 import torch.nn.functional as F
 # Create a tensor.
 tensor1 = torch.tensor([1.0, 2.0, 3.0])
@@ -209,8 +211,8 @@ embedding = nn.Embedding(voacb_size, embedding_dim)
 input_indicies = torch.LongTensor([1, 5, 3, 2])
 # Apply the embedding layer.
 embedding_output = embedding(input_indicies)
-# The output will be a tensor of shape (4, 100), where 4 is the number of inputs
-# and 100 is the dimensionality of the embedding vectors.
+# The output will be a tensor of shape (4, 100), where 4 is the number of
+# inputs and 100 is the dimensionality of the embedding vectors.
 print(embedding_output.shape)
 print(" ")
 print("------------")
@@ -226,7 +228,8 @@ print(" ")
 # The 2 matrix need to be able to be multiplied.
 # A 3x2 and a 2x3 can be multiplied.
 # A 3x4 and a 5x1 cannot be multiplied.
-# The number of columns in the first matrix must match the number of rows in the second matrix.
+# The number of columns in the first matrix must match the number of rows in
+# the second matrix.
 # [
 #   1, 2
 #   3, 4
@@ -387,5 +390,4 @@ print(" ")
 # Similar to sigmoid, but it squishes values between -1 and 1.
 # This activation function is often used in the hidden layers of
 # neural networks.
-
 
