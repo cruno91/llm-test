@@ -11,8 +11,8 @@ else:
     print("MPS device not found.")
 
 # Hyperparameters.
-block_size = 8
-batch_size = 4
+block_size = 8  # Change for GPU.
+batch_size = 4  # Change for GPU.
 max_iterations = 1000
 learning_rate = 3e-3  # 0.003
 eval_iterations = 250
@@ -26,7 +26,7 @@ dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 with open('wizard_of_oz.txt', 'r', encoding='utf-8') as file:
     text = file.read()
 # Get the set of unique characters in the text.
-chars = sorted(set(text))
+chars = sorted(list(set(text)))
 vocab_size = len(chars)
 
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
