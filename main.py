@@ -18,6 +18,7 @@ learning_rate = 3e-3  # 0.003
 eval_iterations = 250
 n_embed = 384  # Amount of neurons in the embedding layer.
 n_layer = 4  # Amount of layers.
+dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
 
 # Open the text file.
@@ -79,6 +80,21 @@ def estimate_loss():
     # Set the model back to training mode.
     model.train()
     return out
+
+
+# Define the feed forward layer.
+class FeedForward(nn.Module):
+    def __init__(self, n_embed):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_embed, 4*n_embed),
+            nn.ReLU(),  # Rectified linear unit.  Converting values if equal to or below 0.
+            nn.Linear(4*n_embed, n_embed),  # Make sure Linear layers are equal to each other.
+            nn.Dropout(dropout)  # Prevents over-fitting.
+        )
+
+    def forward(self, x):
+        return self.net(x)
 
 
 # Define the transformer block.
