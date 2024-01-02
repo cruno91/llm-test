@@ -82,6 +82,28 @@ def estimate_loss():
     return out
 
 
+# Define the head.
+# Multiple heads of attention in parallel.
+class MultiHeadAttention(nn.Module):
+    def __init__(self, num_heads, head_size):
+        super().__init__()
+        # Module list: Heads in parallel for each head.
+        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
+        # Projection from the heads to the embedding size.
+        self.proj = nn.Linear(head_size * num_heads, n_embed)
+        # Dropout.
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        # Concatenate the heads together along the last dimension.
+        # Last dimension in this case is (batch, time, channels).
+        # (batch, time, features) -> (batch, time, [head1, head 1, head 1, head1, head2 ... , head3 ...])
+        # Above example is four features per head, and 3 heads.
+        out = torch.cat([h(x) for h in self.heads], dim=-1)
+        out = self.dropout(self.proj(out))
+        return out
+
+
 # Define the feed forward layer.
 class FeedForward(nn.Module):
     def __init__(self, n_embed):
