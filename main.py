@@ -109,7 +109,7 @@ class Block(nn.Module):
         # The sa is self-attention.
         self.sa = MultiHeadAttention(n_head, head_size)
         # Feedforward layer.
-        self.ffwd = FeelForward(n_embed)
+        self.ffwd = FeedForward(n_embed)
         # Layer normalization.
         self.ln1 = nn.LayerNorm(n_embed)
         self.ln2 = nn.LayerNorm(n_embed)
