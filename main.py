@@ -11,9 +11,9 @@ else:
     print("MPS device not found.")
 
 # Hyperparameters.
-block_size = 8  # Change for GPU.
-batch_size = 4  # Change for GPU.
-max_iterations = 1000
+block_size = 64  # Change for GPU. (8 test, 64 train)
+batch_size = 128  # Change for GPU. (4 test, 128 train)
+max_iterations = 3000  # Change for GPU. (1000 test, 3000 train)
 learning_rate = 3e-3  # 0.003
 eval_iterations = 250
 n_embed = 384  # Amount of neurons in the embedding layer.
