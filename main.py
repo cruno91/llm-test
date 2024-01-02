@@ -98,7 +98,7 @@ class GPTLanguageModel(nn.Module):
         # Helps model converge better.
         self.ln_f = nn.LayerNorm(n_embed)
         # Linear layer for the language model header.
-        self.lm_header = nn.Linear(n_embed, vocab_size)
+        self.lm_head = nn.Linear(n_embed, vocab_size)
 
     # Forward pass.
     def forward(self, index, targets=None):
@@ -117,7 +117,7 @@ class GPTLanguageModel(nn.Module):
         # Get the final layer normalization.
         x = self.ln_f(x)  # (layer norm)
         # Get the logits.
-        logits = self.lm_header(x)
+        logits = self.lm_head(x)
 
         if targets is not None:  # Training mode.
             loss = None
