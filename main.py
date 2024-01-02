@@ -158,9 +158,9 @@ class FeedForward(nn.Module):
     def __init__(self, n_embed):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(n_embed, 4*n_embed),
+            nn.Linear(n_embed, 4 * n_embed),
             nn.ReLU(),  # Rectified linear unit.  Converting values if equal to or below 0.
-            nn.Linear(4*n_embed, n_embed),  # Make sure Linear layers are equal to each other.
+            nn.Linear(4 * n_embed, n_embed),  # Make sure Linear layers are equal to each other.
             nn.Dropout(dropout)  # Prevents over-fitting.
         )
 
@@ -190,11 +190,11 @@ class Block(nn.Module):
         # Self attention.
         y = self.sa(x)
         # Add and normalize rather than normalize and add.
-        x = self.ln1(x+y)
+        x = self.ln1(x + y)
         # Feed forward.
         y = self.ffwd(x)
         # Add and normalize again.
-        x = self.ln2(x+y)
+        x = self.ln2(x + y)
         return x
 
 
@@ -233,7 +233,7 @@ class GPTLanguageModel(nn.Module):
     # Forward pass.
     def forward(self, index, targets=None):
         batch, time = index.shape
-        # idx and targets are both (batch, time) tensors of integers.
+        # index and targets are both (batch, time) tensors of integers.
         token_embeddings = self.token_embedding_table(index)  # (batch, time, channels)
         # Get the positional embeddings.
         positional_embeddings = self.positioning_embedding_table(torch.arange(time, device=device))  # (time, channels)
@@ -253,9 +253,9 @@ class GPTLanguageModel(nn.Module):
             # Get the last token.
             batch, time, channels = logits.shape
             # Flatten the logits.
-            logits = logits.view(batch*time, channels)
+            logits = logits.view(batch * time, channels)
             # Flatten the targets.
-            targets = targets.view(batch*time)
+            targets = targets.view(batch * time)
             # Get the loss.
             loss = F.cross_entropy(logits, targets)
         return logits, loss
