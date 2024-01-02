@@ -81,6 +81,36 @@ def estimate_loss():
     return out
 
 
+# Define the transformer block.
+class Block(nn.Module):
+    def __init__(self, n_embed, n_head):
+        # The n_embed is the amount of neurons in the embedding layer.
+        # AKA the amount of channels or heads we'd like.
+        super().__init__()
+        # Number of features each head will be capturing in multi-head attention.
+        head_size = n_embed // n_head
+        # Multi-head attention layer.
+        # The sa is self-attention.
+        self.sa = MultiHeadAttention(n_head, head_size)
+        # Feedforward layer.
+        self.ffwd = FeelForward(n_embed)
+        # Layer normalization.
+        self.ln1 = nn.LayerNorm(n_embed)
+        self.ln2 = nn.LayerNorm(n_embed)
+
+    # Forward pass.
+    def forward(self, x):
+        # Self attention.
+        y = self.sa(x)
+        # Add and normalize rather than normalize and add.
+        x = self.ln1(x+y)
+        # Feed forward.
+        y = self.ffwd(x)
+        # Add and normalize again.
+        x = self.ln2(x+y)
+        return x
+
+
 # Define the model.
 class GPTLanguageModel(nn.Module):
     def __init__(self, vocab_size):
