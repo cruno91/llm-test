@@ -99,6 +99,19 @@ class GPTLanguageModel(nn.Module):
         self.ln_f = nn.LayerNorm(n_embed)
         # Linear layer for the language model header.
         self.lm_head = nn.Linear(n_embed, vocab_size)
+        # Initialize the weights.
+        self.apply(self._init_weights)
+
+    # Initialize the weights around certain standard deviations.
+    # Using 0.02 for the standard deviation is a common practice.
+    # Helps training converge better.
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     # Forward pass.
     def forward(self, index, targets=None):
@@ -106,18 +119,18 @@ class GPTLanguageModel(nn.Module):
         logits = self.token_embedding_table(index)
 
         # idx and targets are both (batch, time) tensors of integers.
-        token_embeddings = self.token_embedding_table(index)
+        token_embeddings = self.token_embedding_table(index)  # (batch, time, channels)
         # Get the positional embeddings.
-        positinoal_embeddings = self.positioning_embedding_table(torch.arange(time, device=device))
+        positional_embeddings = self.positioning_embedding_table(torch.arange(time, device=device))  # (time, channels)
         # Use "x" to save memory?
         # Add the positional embeddings to the token embeddings.
-        x = token_embeddings + positinoal_embeddings  # (embeddings)
+        x = token_embeddings + positional_embeddings  # (embeddings) - (batch, time, channels)
         # Get the blocks.
-        x = self.blocks(x)  # (blocks)
+        x = self.blocks(x)  # (blocks) - (batch, time, channels)
         # Get the final layer normalization.
-        x = self.ln_f(x)  # (layer norm)
+        x = self.ln_f(x)  # (layer norm) - (batch, time, channels)
         # Get the logits.
-        logits = self.lm_head(x)
+        logits = self.lm_head(x)  # (linear layer) - (batch, time, vocab size)
 
         if targets is not None:  # Training mode.
             loss = None
