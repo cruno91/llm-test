@@ -17,7 +17,8 @@ max_iterations = 1000
 learning_rate = 3e-3  # 0.003
 eval_iterations = 250
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_layer = 4  # Amount of layers.
+n_head = 4  # Amount of heads (in parallel).
+n_layer = 4  # Amount of layers (equal to number of decoder blocks).
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
 
@@ -83,6 +84,54 @@ def estimate_loss():
 
 
 # Define the head.
+# Scaled dot production attention.
+# One head of self-attention.
+class Head(nn.Module):
+    def __init__(self, head_size):
+        super().__init__()
+        # Query, key, and value.
+        # Keys and queries dot product together.
+        # Scaling by 1/sart (length of a row in the keys or queries matrix or tensor)
+        # Transform n_embed to head size. (Linear transformation to 96 features instead of 384).
+        self.key = nn.Linear(n_embed, head_size, bias=False)
+        self.query = nn.Linear(n_embed, head_size, bias=False)
+        self.value = nn.Linear(n_embed, head_size, bias=False)
+        # Register this no look ahead masking in the model state.
+        # Instead of having to re-initialize for every head for every forward and
+        # backward pass, just add it to the model state.
+        # Prevent overhead computation of having to do this over and over again.
+        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        # Input size (batch, time, channels).
+        # Output size (batch, time, head size).
+        batch, time, channels = x.shape
+        # Call linear transformation on input x.
+        k = self.key(x)
+        q = self.query(x)
+        # Compute the attention scores (affinities).
+        # Transposing the key matrix.  Flips second to last dimension with last dimension (time and head size).
+        # (batch, time, head size) @ (batch, head size, time ->[dot product] (batch, time, time).
+        # Scaling by 1/sqrt(length of a row in the keys or queries matrix or tensor).
+        # (batch, time, time) * (1/sqrt(head size)).
+        # Do this to prevent the dot product from getting too large. Think of trying to listen to a multiple
+        # conversations at once.  You can't do it if some voices are too loud, drowning out the others.
+        weights = q @ k.transpose(-1, -2) * k.shape[-1]** -0.5  # Weights are attention scores.
+        # Mask out the upper triangular part of the weights.
+        # As the time step advances, the model can only see the past.
+        # For each value that's 0, make it -infinity so that softmax will take these values and exponentiate normalize
+        # them, which will turn -infinity to 0, sharpen the distribution, and make the model more confident.
+        weights = weights.masked_fill(self.tril[:time, :time] == 0, float('-inf'))
+        weights = F.softmax(weights, dim=-1)
+        weights = self.dropout(weights)
+        # Perform the weighted aggregation of the values.
+        v = self.value(x)
+        out = weights @ v
+        return out
+
+
+# Define the multi-head attention.
 # Multiple heads of attention in parallel.
 class MultiHeadAttention(nn.Module):
     def __init__(self, num_heads, head_size):
@@ -183,9 +232,7 @@ class GPTLanguageModel(nn.Module):
 
     # Forward pass.
     def forward(self, index, targets=None):
-        # Get the embeddings.
-        logits = self.token_embedding_table(index)
-
+        batch, time = index.shape
         # idx and targets are both (batch, time) tensors of integers.
         token_embeddings = self.token_embedding_table(index)  # (batch, time, channels)
         # Get the positional embeddings.
