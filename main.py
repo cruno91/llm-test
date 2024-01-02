@@ -247,7 +247,7 @@ class GPTLanguageModel(nn.Module):
         # Get the logits.
         logits = self.lm_head(x)  # (linear layer) - (batch, time, vocab size)
 
-        if targets is not None:  # Training mode.
+        if targets is None:  # Training mode.
             loss = None
         else:  # Generation mode.
             # Get the last token.
