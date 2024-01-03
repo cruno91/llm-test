@@ -17,8 +17,8 @@ max_iterations = 3000  # Change for GPU. (1000 test, 3000 train)
 learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
 eval_iterations = 500  # Change for purpose. (250 test, 500 train)
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 8  # Amount of heads (in parallel). (4 for mps 8 for cuda)
-n_layer = 8  # Amount of layers (equal to number of decoder blocks). (4 for mps 8 for cuda)
+n_head = 4  # Amount of heads (in parallel). (4 for mps 8 for cuda)
+n_layer = 4  # Amount of layers (equal to number of decoder blocks). (4 for mps 8 for cuda)
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
 
