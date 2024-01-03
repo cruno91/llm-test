@@ -307,6 +307,7 @@ for i in range(max_iterations):
     # Print the training loss.
     if i % eval_iterations == 0:
         losses = estimate_loss()
+        # We want to see convergence: Val loss should be lower than train loss.
         print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
 
     # Get the batch.
