@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import mmap
+import random
 
 # Check if Metal is available.
 if torch.backends.mps.is_available():
@@ -23,7 +25,7 @@ dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
 
 # Open the text file.
-with open('wizard_of_oz.txt', 'r', encoding='utf-8') as file:
+with open('vocab.txt', 'r', encoding='utf-8') as file:
     text = file.read()
 # Get the set of unique characters in the text.
 chars = sorted(list(set(text)))
@@ -35,18 +37,34 @@ encode = lambda s: [strings_to_ints[c] for c in s]
 ints_to_strings = {i: c for i, c in enumerate(chars)}
 decode = lambda x: ''.join([ints_to_strings[i] for i in x])
 
-# Convert the text to integers.
-data = torch.tensor(encode(text), dtype=torch.long)
+# Memory map for using small snippets of text from a single file of any size.
+def get_random_chunk(split):
+    filename = "output_train.txt" if split == 'train' else "output_val.txt"
+    # Opened in binary mode.
+    with open(filename, 'rb') as f:
+        # Memory map the file. (Chunks of the file are loaded into memory as needed.)
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            # Determine the file size and a random position to start reading.
+            file_size = len(mm)
+            start_pos = random.randint(0, (file_size) - block_size * batch_size)
 
-# Get the training and validation splits.
-n = int(0.8*len(data))
-train_data, val_data = data[:n], data[n:]
+            # Seek to the random position and read the block of text.
+            mm.seek(start_pos)
+            block = mm.read(block_size * batch_size - 1)
+
+            # Decode the block to a string, ignoring any invalid byte sequences.
+            decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
+
+            # Train and test splits.
+            data = torch.tensor(encode(decoded_block), dtype=torch.long)
+
+    return data
 
 
 # Get a batch of data.
 def get_batch(split):
     # Get the data from the training or validation split.
-    data = train_data if split == "train" else val_data
+    data = get_random_chunk(split)
     # Get a random index.
     ix = torch.randint(len(data) - block_size, (batch_size,))
     # Get the data from the random index to the random index plus the block size.
