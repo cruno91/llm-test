@@ -297,6 +297,10 @@ class GPTLanguageModel(nn.Module):
 
 # Create the model.
 m = GPTLanguageModel(vocab_size)
+print("Loading model parameters...")
+with open ('model-01.pkl', 'rb') as f:
+    m = pickle.load(f)
+print("Model parameters loaded.")
 # Move the model to the device.
 model = m.to(device)
 
