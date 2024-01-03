@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import mmap
 import random
+import pickle
 
 # Check if Metal is available.
 if torch.backends.mps.is_available():
@@ -13,14 +14,14 @@ else:
     print("MPS device not found.")
 
 # Hyperparameters.
-block_size = 64  # Change for GPU. (8 test, 64 train)
+block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 batch_size = 128  # Change for GPU. (4 test, 128 train)
-max_iterations = 3000  # Change for GPU. (1000 test, 3000 train)
+max_iterations = 200  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
 learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
-eval_iterations = 500  # Change for purpose. (250 test, 500 train)
+eval_iterations = 100  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 4  # Amount of heads (in parallel). (4 for mps 8 for cuda)
-n_layer = 4  # Amount of layers (equal to number of decoder blocks). (4 for mps 8 for cuda)
+n_head = 1  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_layer = 1  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
 
@@ -323,3 +324,7 @@ for i in range(max_iterations):
 
 # Print the loss.
 print(loss.item())
+
+with open('model-01.pkl', 'wb') as f:
+    pickle.dump(model, f)
+print("Model saved.")
