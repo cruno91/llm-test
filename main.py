@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import mmap
 import random
 import pickle
+import argparse
 
 # Check if Metal is available.
 if torch.backends.mps.is_available():
@@ -13,10 +14,14 @@ else:
     device = torch.device("cpu")
     print("MPS device not found.")
 
+parser = argparse.ArgumentParser("Example GPT LLM.")
+parser.add_argument("--batch-size", type=int, help="train the model with a specified batch size")
+args = parser.parse_args()
+
 # Hyperparameters.
 # Affects memory.
+batch_size = args.batch_size if args.batch_size is not None else 128  # Change for GPU. (4 test, 128 train)
 block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
-batch_size = 128  # Change for GPU. (4 test, 128 train)
 # Does not affect memory.
 max_iterations = 1000  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
 learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
@@ -32,8 +37,8 @@ dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 # Open the text file.
 with open('vocab.txt', 'r', encoding='utf-8') as file:
     text = file.read()
-# Get the set of unique characters in the text.
-chars = sorted(list(set(text)))
+    # Get the set of unique characters in the text.
+    chars = sorted(list(set(text)))
 vocab_size = len(chars)
 
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
@@ -286,8 +291,10 @@ class GPTLanguageModel(nn.Module):
     # Generate text.
     def generate(self, index, max_new_tokens):
         for _ in range(max_new_tokens):
+            # Crop index to the last block_size tokens.
+            index_cond = index[:, block_size:]
             # Get the logits.
-            logits, _ = self.forward(index)
+            logits, _ = self.forward(index_cond)
             # Get the last token.
             logits = logits[:, -1, :]
             # Get the probabilities.
@@ -295,7 +302,7 @@ class GPTLanguageModel(nn.Module):
             # Get the index of the next token.
             index_next = torch.multinomial(probabilities, num_samples=1)
             # Append the index of the next token to the index.
-            index = torch.cat((index, index_next), dim=-1)
+            index = torch.cat((index, index_next), dim=1)
         return index
 
 
@@ -336,3 +343,4 @@ print(loss.item())
 with open('model-01.pkl', 'wb') as f:
     pickle.dump(model, f)
 print("Model saved.")
+
