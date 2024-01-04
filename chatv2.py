@@ -19,7 +19,7 @@ args = parser.parse_args()
 # Hyperparameters.
 # Affects memory.
 batch_size = args.batch_size if args.batch_size is not None else 128  # Change for GPU. (4 test, 128 train)
-block_size = 120  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
+block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 # Does not affect memory.
 # Affect memory.
 n_embed = 384  # Amount of neurons in the embedding layer.
