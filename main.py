@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,15 +23,15 @@ args = parser.parse_args()
 # Hyperparameters.
 # Affects memory.
 batch_size = args.batch_size if args.batch_size is not None else 128  # Change for GPU. (4 test, 128 train)
-block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
+block_size = 128  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 # Does not affect memory.
-max_iterations = 1000  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
+max_iterations = 200  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
 learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
-eval_iterations = 250  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
+eval_iterations = 100  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
 # Affect memory.
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 8  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
-n_layer = 8  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_head = 1  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_layer = 1  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
 # Does not affect memory.
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
@@ -46,6 +48,7 @@ strings_to_ints = {c: i for i, c in enumerate(chars)}
 encode = lambda s: [strings_to_ints[c] for c in s]
 ints_to_strings = {i: c for i, c in enumerate(chars)}
 decode = lambda x: ''.join([ints_to_strings[i] for i in x])
+
 
 # Memory map for using small snippets of text from a single file of any size.
 def get_random_chunk(split):
@@ -78,9 +81,9 @@ def get_batch(split):
     # Get a random index.
     ix = torch.randint(len(data) - block_size, (batch_size,))
     # Get the data from the random index to the random index plus the block size.
-    x = torch.stack([data[i:i+block_size] for i in ix])
+    x = torch.stack([data[i:i + block_size] for i in ix])
     # Get the data from the random index plus 1 to the random index plus the block size plus 1.
-    y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
     # Move the data to the device.
     x, y = x.to(device), y.to(device)
     return x, y
@@ -145,7 +148,7 @@ class Head(nn.Module):
         # (batch, time, time) * (1/sqrt(head size)).
         # Do this to prevent the dot product from getting too large. Think of trying to listen to a multiple
         # conversations at once.  You can't do it if some voices are too loud, drowning out the others.
-        weights = q @ k.transpose(-1, -2) * k.shape[-1]** -0.5  # Weights are attention scores.
+        weights = q @ k.transpose(-2, -1) * k.shape[-1] ** -0.5  # Weights are attention scores.
         # Mask out the upper triangular part of the weights.
         # As the time step advances, the model can only see the past.
         # For each value that's 0, make it -infinity so that softmax will take these values and exponentiate normalize
@@ -260,6 +263,7 @@ class GPTLanguageModel(nn.Module):
 
     # Forward pass.
     def forward(self, index, targets=None):
+        # print(index.shape)
         batch, time = index.shape
         # index and targets are both (batch, time) tensors of integers.
         token_embeddings = self.token_embedding_table(index)  # (batch, time, channels)
@@ -309,8 +313,9 @@ class GPTLanguageModel(nn.Module):
 # Create the model.
 m = GPTLanguageModel(vocab_size)
 print("Loading model parameters...")
-with open ('model-01.pkl', 'rb') as f:
-    m = pickle.load(f)
+if os.path.isfile('model-01.pkl'):
+    with open('model-01.pkl', 'rb') as f:
+        m = pickle.load(f)
 print("Model parameters loaded.")
 # Move the model to the device.
 model = m.to(device)
