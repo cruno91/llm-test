@@ -6,8 +6,6 @@ import mmap
 import random
 import pickle
 import argparse
-from tokenizers.implementations import ByteLevelBPETokenizer
-from tokenizers.processors import BertProcessing
 
 # Check if Metal is available.
 if torch.backends.mps.is_available():
@@ -31,39 +29,30 @@ learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
 eval_iterations = 2000  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
 # Affect memory.
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 8  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
-n_layer = 8  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_head = 4  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_layer = 4  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
 # Does not affect memory.
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
+# 127000
 
-# Load the trained tokenizer
-tokenizer = ByteLevelBPETokenizer(
-    "./bpe_openwebtext-vocab.json",
-    "./bpe_openwebtext-merges.txt",
-)
-
-# Post-process with BERT's way (adding special tokens, etc.)
-tokenizer._tokenizer.post_processor = BertProcessing(
-    ("</s>", tokenizer.token_to_id("</s>")),
-    ("<s>", tokenizer.token_to_id("<s>")),
-)
-tokenizer.enable_truncation(max_length=512)
-vocab_size = tokenizer.get_vocab_size()
-
+# Open the text file.
+with open('vocab.txt', 'r', encoding='utf-8') as file:
+    text = file.read()
+    # Get the set of unique characters in the text.
+    chars = sorted(list(set(text)))
+vocab_size = len(chars)
 
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
-def encode(text):
-    return tokenizer.encode(text).ids
-
-
-def decode(token_ids):
-    return tokenizer.decode(token_ids)
+strings_to_ints = {c: i for i, c in enumerate(chars)}
+encode = lambda s: [strings_to_ints[c] for c in s]
+ints_to_strings = {i: c for i, c in enumerate(chars)}
+decode = lambda x: ''.join([ints_to_strings[i] for i in x])
 
 
 # Memory map for using small snippets of text from a single file of any size.
 def get_random_chunk(split):
-    filename = "bpe_output_train.txt" if split == 'train' else "bpe_output_val.txt"
+    filename = "output_train.txt" if split == 'train' else "output_val.txt"
     # Opened in binary mode.
     with open(filename, 'rb') as f:
         # Memory map the file. (Chunks of the file are loaded into memory as needed.)
@@ -74,7 +63,7 @@ def get_random_chunk(split):
 
             # Seek to the random position and read the block of text.
             mm.seek(start_pos)
-            block = mm.read(block_size * batch_size * 10 - 1)  # Increase the multiplier as needed
+            block = mm.read(block_size * batch_size - 1)
 
             # Decode the block to a string, ignoring any invalid byte sequences.
             decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
@@ -88,10 +77,7 @@ def get_random_chunk(split):
 # Get a batch of data.
 def get_batch(split):
     # Get the data from the training or validation split.
-    while True:
-        data = get_random_chunk(split)
-        if len(data) > block_size:
-            break
+    data = get_random_chunk(split)
     # Get a random index.
     ix = torch.randint(len(data) - block_size, (batch_size,))
     # Get the data from the random index to the random index plus the block size.
@@ -328,8 +314,8 @@ class GPTLanguageModel(nn.Module):
 m = GPTLanguageModel(vocab_size)
 print("Loading model parameters...")
 if os.path.isfile('model-02.pkl'):
-    with open('model-02.pkl', 'rb') as model_file:
-        m = pickle.load(model_file)
+    with open('model-02.pkl', 'rb') as f:
+        m = pickle.load(f)
 print("Model parameters loaded.")
 # Move the model to the device.
 model = m.to(device)
@@ -351,7 +337,7 @@ for i in range(max_iterations):
     logits, loss = model.forward(xb, yb)
     # Backward pass.
     optimizer.zero_grad(set_to_none=True)
-    # Backpropagation of the loss.
+    # Backpropagate the loss.
     loss.backward()
     # Update the weights.
     optimizer.step()
