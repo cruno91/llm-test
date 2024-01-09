@@ -11,8 +11,8 @@ def xz_files_in_dir(directory):
     return files
 
 folder_path = "../openwebtext"
-output_file_train = "bpe_output_train.txt"
-output_file_val = "bpe_output_val.txt"
+output_file_train = "output_train2.txt"
+output_file_val = "output_val2.txt"
 
 files = xz_files_in_dir(folder_path)
 total_files = len(files)
@@ -50,4 +50,4 @@ tokenizer.train(files=[output_file_train], vocab_size=52_000, min_frequency=2, s
 ])
 
 # Save the tokenizer models - vocab and merges files
-tokenizer.save_model(".", "bpe_openwebtext")
+tokenizer.save_model(".", "openwebtext_bpe")
