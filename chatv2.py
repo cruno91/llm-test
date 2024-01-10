@@ -23,8 +23,8 @@ block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 # Does not affect memory.
 # Affect memory.
 n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 4  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
-n_layer = 4  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_head = 8  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
+n_layer = 8  # Amount of layers (equal to number of decoder blocks). (v1 4 for mps 8 for cuda) - (v2 1 test)
 # Does not affect memory.
 dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
 
