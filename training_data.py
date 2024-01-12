@@ -22,9 +22,9 @@ def process_data(folder_path):
     return files_train, files_val
 
 
-def process_character_training_data(file, data_split_file, folder_path, vocab):
+def process_character_training_data(file, data_split, folder_path, vocab):
     with open(file, "w") as outfile:
-        for filename in tqdm(data_split_file, total=len(data_split_file)):
+        for filename in tqdm(data_split, total=len(data_split)):
             file_path = os.path.join(folder_path, filename)
             with lzma.open(file_path, "rt", encoding="utf-8") as infile:
                 text = infile.read()
@@ -32,3 +32,5 @@ def process_character_training_data(file, data_split_file, folder_path, vocab):
                 characters = set(text)
                 vocab.update(text)
     return vocab
+
+
