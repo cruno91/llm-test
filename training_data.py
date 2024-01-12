@@ -34,3 +34,10 @@ def process_character_training_data(file, data_split, folder_path, vocab):
     return vocab
 
 
+def process_bpe_training_data(file, data_split, folder_path):
+    with open(file, "w") as outfile:
+        for filename in tqdm(data_split, total=len(data_split)):
+            file_path = os.path.join(folder_path, filename)
+            with lzma.open(file_path, "rt", encoding="utf-8") as infile:
+                text = infile.read()
+                outfile.write(text)
