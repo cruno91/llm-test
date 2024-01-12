@@ -1,6 +1,7 @@
 import os
-import tqdm
 import lzma
+from tqdm import tqdm
+
 
 def xz_files_in_dir(directory):
     files = []
@@ -19,6 +20,7 @@ def process_data(folder_path):
     files_val = files[split_index:]
 
     return files_train, files_val
+
 
 def process_character_training_data(file, data_split_file, folder_path, vocab):
     with open(file, "w") as outfile:
