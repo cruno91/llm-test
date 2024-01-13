@@ -1,8 +1,8 @@
 import torch
 import argparse
 
-from model import get_device
-from model import load_model
+from model_gpt import get_device
+from model_gpt import load_model
 
 parser = argparse.ArgumentParser("Example GPT LLM.")
 parser.add_argument("--batch-size", type=int, help="train the model with a specified batch size")

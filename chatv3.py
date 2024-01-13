@@ -3,8 +3,8 @@ import argparse
 from tokenizers.implementations import ByteLevelBPETokenizer
 from tokenizers.processors import BertProcessing
 
-from model import get_device
-from model import load_model
+from model_gpt import get_device
+from model_gpt import load_model
 
 parser = argparse.ArgumentParser("Example GPT LLM.")
 parser.add_argument("--batch-size", type=int, help="train the model with a specified batch size")
