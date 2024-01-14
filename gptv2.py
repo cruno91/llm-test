@@ -7,7 +7,6 @@ from model_gpt import get_device
 from model_gpt import load_model
 from model_gpt import get_optimizer
 from model_gpt import write_model
-from model_gpt import get_random_chunk
 from model_gpt import get_batch
 
 device = get_device()
@@ -66,7 +65,7 @@ def estimate_loss():
         # Get the losses.
         for k in range(eval_iterations):
             # Get the batch.
-            x, y = get_batch(split)
+            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device)
             # Forward pass.
             logits, loss = model(x, y)
             # Store the loss.
@@ -92,7 +91,7 @@ for i in range(max_iterations):
         print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
 
     # Get the batch.
-    xb, yb = get_batch("train")
+    xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device)
     # Forward pass.
     logits, loss = model.forward(xb, yb)
     # Backward pass.
