@@ -220,6 +220,12 @@ def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_la
     return model
 
 
+def get_optimizer(model, learning_rate):
+    # Create the optimizer.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    return optimizer
+
+
 def write_model(file_path, model):
     with open(file_path, 'wb') as f:
         pickle.dump(model, f)
