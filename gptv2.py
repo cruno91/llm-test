@@ -1,6 +1,3 @@
-import torch
-import mmap
-import random
 import argparse
 
 from model_gpt import get_device
