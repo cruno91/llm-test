@@ -231,6 +231,33 @@ def get_random_chunk(split, training_data_filemap, block_size, batch_size, encod
     return data
 
 
+# Estimate the loss.
+@torch.no_grad() # @torch.no_grad() decorator is used in PyTorch to disable gradient calculation.
+# which is useful for inference or evaluation when you don't need to compute gradients.
+# This reduces memory consumption and speeds up the computations.
+def estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device):
+    # Create a dictionary to store the losses.
+    out = {}
+    # Set the model to evaluation mode.
+    model.eval()
+    for split in ["train", "val"]:
+        # Create a tensor to store the losses.
+        losses = torch.zeros(eval_iterations)
+        # Get the losses.
+        for k in range(eval_iterations):
+            # Get the batch.
+            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device)
+            # Forward pass.
+            logits, loss = model(x, y)
+            # Store the loss.
+            losses[k] = loss.item()
+        # Get the mean of the losses.
+        out[split] = losses.mean()
+    # Set the model back to training mode.
+    model.train()
+    return out
+
+
 def get_batch(split, training_data_filemap, block_size, batch_size, encode, device):
     # Get the data from the training or validation split.
     data = get_random_chunk(split, training_data_filemap, block_size, batch_size, encode)

@@ -8,6 +8,7 @@ from model_gpt import load_model
 from model_gpt import get_optimizer
 from model_gpt import write_model
 from model_gpt import get_batch
+from model_gpt import estimate_loss
 
 device = get_device()
 
@@ -51,32 +52,6 @@ training_data_filemap = {
     "val": "output_val.txt"
 }
 
-
-# Estimate the training loss.
-@torch.no_grad()
-def estimate_loss():
-    # Create a dictionary to store the losses.
-    out = {}
-    # Set the model to evaluation mode.
-    model.eval()
-    for split in ["train", "val"]:
-        # Create a tensor to store the losses.
-        losses = torch.zeros(eval_iterations)
-        # Get the losses.
-        for k in range(eval_iterations):
-            # Get the batch.
-            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device)
-            # Forward pass.
-            logits, loss = model(x, y)
-            # Store the loss.
-            losses[k] = loss.item()
-        # Get the mean of the losses.
-        out[split] = losses.mean()
-    # Set the model back to training mode.
-    model.train()
-    return out
-
-
 model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
 
 # Create the optimizer.
@@ -86,7 +61,7 @@ optimizer = get_optimizer(model, learning_rate)
 for i in range(max_iterations):
     # Print the training loss.
     if i % eval_iterations == 0:
-        losses = estimate_loss()
+        losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
         # We want to see convergence: Val loss should be lower than train loss.
         print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
 
