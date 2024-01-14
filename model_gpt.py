@@ -1,4 +1,7 @@
+import mmap
 import os
+import random
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -199,6 +202,47 @@ class GPTLanguageModel(nn.Module):
             index = torch.cat((index, index_next), dim=1)
         return index
 
+
+# Memory map for using small snippets of text from a single file of any size.
+def get_random_chunk(split, training_data_filemap, block_size, batch_size, encode,  multiplier=1):
+    if split == 'train':
+        filename = training_data_filemap["train"]
+    else:
+        filename = training_data_filemap["val"]
+
+    # Opened in binary mode.
+    with open(filename, 'rb') as f:
+        # Memory map the file. (Chunks of the file are loaded into memory as needed.)
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            # Determine the file size and a random position to start reading.
+            file_size = len(mm)
+            start_pos = random.randint(0, (file_size) - block_size * batch_size)
+
+            # Seek to the random position and read the block of text.
+            mm.seek(start_pos)
+            block = mm.read(block_size * batch_size * multiplier - 1)  # Increase the multiplier as needed
+
+            # Decode the block to a string, ignoring any invalid byte sequences.
+            decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
+
+            # Train and test splits.
+            data = torch.tensor(encode(decoded_block), dtype=torch.long)
+
+    return data
+
+
+def get_batch(split, training_data_filemap, block_size, batch_size, encode, device):
+    # Get the data from the training or validation split.
+    data = get_random_chunk(split, training_data_filemap, block_size, batch_size, encode)
+    # Get a random index.
+    ix = torch.randint(len(data) - block_size, (batch_size,))
+    # Get the data from the random index to the random index plus the block size.
+    x = torch.stack([data[i:i + block_size] for i in ix])
+    # Get the data from the random index plus 1 to the random index plus the block size plus 1.
+    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
+    # Move the data to the device.
+    x, y = x.to(device), y.to(device)
+    return x, y
 
 def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_layer, dropout):
 

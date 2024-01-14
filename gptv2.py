@@ -7,8 +7,9 @@ from model_gpt import get_device
 from model_gpt import load_model
 from model_gpt import get_optimizer
 from model_gpt import write_model
+from model_gpt import get_random_chunk
+from model_gpt import get_batch
 
-# Check if Metal is available.
 device = get_device()
 
 parser = argparse.ArgumentParser("Example GPT LLM.")
@@ -46,43 +47,10 @@ ints_to_strings = {i: c for i, c in enumerate(chars)}
 decode = lambda x: ''.join([ints_to_strings[i] for i in x])
 
 
-# Memory map for using small snippets of text from a single file of any size.
-def get_random_chunk(split):
-    filename = "output_train.txt" if split == 'train' else "output_val.txt"
-    # Opened in binary mode.
-    with open(filename, 'rb') as f:
-        # Memory map the file. (Chunks of the file are loaded into memory as needed.)
-        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-            # Determine the file size and a random position to start reading.
-            file_size = len(mm)
-            start_pos = random.randint(0, (file_size) - block_size * batch_size)
-
-            # Seek to the random position and read the block of text.
-            mm.seek(start_pos)
-            block = mm.read(block_size * batch_size - 1)
-
-            # Decode the block to a string, ignoring any invalid byte sequences.
-            decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
-
-            # Train and test splits.
-            data = torch.tensor(encode(decoded_block), dtype=torch.long)
-
-    return data
-
-
-# Get a batch of data.
-def get_batch(split):
-    # Get the data from the training or validation split.
-    data = get_random_chunk(split)
-    # Get a random index.
-    ix = torch.randint(len(data) - block_size, (batch_size,))
-    # Get the data from the random index to the random index plus the block size.
-    x = torch.stack([data[i:i + block_size] for i in ix])
-    # Get the data from the random index plus 1 to the random index plus the block size plus 1.
-    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
-    # Move the data to the device.
-    x, y = x.to(device), y.to(device)
-    return x, y
+training_data_filemap = {
+    "train": "output_train.txt",
+    "val": "output_val.txt"
+}
 
 
 # Estimate the training loss.
