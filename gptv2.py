@@ -5,6 +5,7 @@ import argparse
 
 from model_gpt import get_device
 from model_gpt import load_model
+from model_gpt import get_optimizer
 from model_gpt import write_model
 
 # Check if Metal is available.
@@ -112,7 +113,7 @@ def estimate_loss():
 model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
 
 # Create the optimizer.
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+optimizer = get_optimizer(model, learning_rate)
 
 # Train the model.
 for i in range(max_iterations):
