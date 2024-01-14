@@ -186,7 +186,7 @@ class GPTLanguageModel(nn.Module):
     def generate(self, index, max_new_tokens, block_size, device):
         for _ in range(max_new_tokens):
             # Crop index to the last block_size tokens.
-            index_cond = index[:, -block_size:]
+            index_cond = index[:, block_size:]
             # Get the logits.
             logits, loss = self.forward(device, index_cond)
             # Get the last token.
