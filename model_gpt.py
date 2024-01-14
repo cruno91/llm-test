@@ -220,6 +220,12 @@ def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_la
     return model
 
 
+def write_model(file_path, model):
+    with open(file_path, 'wb') as f:
+        pickle.dump(model, f)
+    print("Model saved.")
+
+
 def get_device():
     # Check if Metal is available.
     if torch.backends.mps.is_available():
@@ -229,3 +235,4 @@ def get_device():
         device = torch.device("cpu")
         print("MPS device not found.")
     return device
+
