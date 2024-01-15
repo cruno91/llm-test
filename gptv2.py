@@ -6,6 +6,7 @@ from model_gpt import get_optimizer
 from model_gpt import write_model
 from model_gpt import get_batch
 from model_gpt import estimate_loss
+from model_gpt import train_model
 
 device = get_device()
 
@@ -55,23 +56,7 @@ model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_he
 optimizer = get_optimizer(model, learning_rate)
 
 # Train the model.
-for i in range(max_iterations):
-    # Print the training loss.
-    if i % eval_iterations == 0:
-        losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
-        # We want to see convergence: Val loss should be lower than train loss.
-        print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
-
-    # Get the batch.
-    xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device)
-    # Forward pass.
-    logits, loss = model.forward(xb, yb)
-    # Backward pass.
-    optimizer.zero_grad(set_to_none=True)
-    # Backpropagate the loss.
-    loss.backward()
-    # Update the weights.
-    optimizer.step()
+train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
 
 # Print the loss.
 print(loss.item())
