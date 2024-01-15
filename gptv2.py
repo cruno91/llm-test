@@ -56,7 +56,4 @@ optimizer = get_optimizer(model, learning_rate)
 # Train the model.
 train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
 
-# Print the loss.
-print(loss.item())
-
 write_model("model-02.pkl", model)

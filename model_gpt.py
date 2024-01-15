@@ -271,8 +271,8 @@ def get_batch(split, training_data_filemap, block_size, batch_size, encode, devi
     x, y = x.to(device), y.to(device)
     return x, y
 
-def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_layer, dropout):
 
+def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_layer, dropout):
     # Check if the .pkl file exists
     if os.path.exists(model_path):
         print("Loading model parameters...")
@@ -298,11 +298,11 @@ def get_optimizer(model, learning_rate):
 
 
 def train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device):
+    loss = None
     for i in range(max_iterations):
         # Print the training loss.
         if i % eval_iterations == 0:
-            losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode,
-                                   device)
+            losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
             # We want to see convergence: Val loss should be lower than train loss.
             print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
 
@@ -316,6 +316,8 @@ def train_model(model, max_iterations, optimizer, eval_iterations, training_data
         loss.backward()
         # Update the weights.
         optimizer.step()
+    if loss is not None:
+        print(loss.item())
 
 
 def write_model(file_path, model):
