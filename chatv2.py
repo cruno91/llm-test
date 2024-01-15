@@ -40,7 +40,7 @@ model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_he
 while True:
     prompt = input("Enter a prompt: ")
     context = torch.tensor(encode(prompt), dtype=torch.long, device=device)
-    generated_chars = decode(model.generate(context.unsqueeze(0), max_new_tokens=150)[0].tolist())
+    generated_chars = decode(model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
 
     print(f'Completion:\n{generated_chars}')
 

@@ -59,7 +59,7 @@ class Head(nn.Module):
 # Define the multi-head attention.
 # Multiple heads of attention in parallel.
 class MultiHeadAttention(nn.Module):
-    def __init__(self, num_heads, n_embed, head_size, block_size, dropout):
+    def __init__(self, n_embed, num_heads, head_size, block_size, dropout):
         super().__init__()
         # Module list: Heads in parallel for each head.
         self.heads = nn.ModuleList([Head(n_embed, head_size, block_size, dropout) for _ in range(num_heads)])
@@ -186,7 +186,7 @@ class GPTLanguageModel(nn.Module):
         return logits, loss
 
     # Generate text.
-    def generate(self, index, max_new_tokens, block_size, device):
+    def generate(self, index, block_size, device, max_new_tokens):
         for _ in range(max_new_tokens):
             # Crop index to the last block_size tokens.
             index_cond = index[:, block_size:]
@@ -232,9 +232,10 @@ def get_random_chunk(split, training_data_filemap, block_size, batch_size, encod
 
 
 # Estimate the loss.
-@torch.no_grad() # @torch.no_grad() decorator is used in PyTorch to disable gradient calculation.
+# @torch.no_grad() decorator is used in PyTorch to disable gradient calculation.
 # which is useful for inference or evaluation when you don't need to compute gradients.
 # This reduces memory consumption and speeds up the computations.
+@torch.no_grad()
 def estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device):
     # Create a dictionary to store the losses.
     out = {}
@@ -248,7 +249,7 @@ def estimate_loss(model, eval_iterations, training_data_filemap, block_size, bat
             # Get the batch.
             x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device)
             # Forward pass.
-            logits, loss = model(x, y)
+            logits, loss = model(device, x, y)
             # Store the loss.
             losses[k] = loss.item()
         # Get the mean of the losses.
@@ -288,12 +289,14 @@ def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_la
 
     # Set the model to the specified device
     model = m.to(device)
+    print("Model loaded.")
     return model
 
 
 def get_optimizer(model, learning_rate):
     # Create the optimizer.
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    print("AdamW optimizer created.")
     return optimizer
 
 
@@ -305,11 +308,10 @@ def train_model(model, max_iterations, optimizer, eval_iterations, training_data
             losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
             # We want to see convergence: Val loss should be lower than train loss.
             print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
-
         # Get the batch.
         xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device)
         # Forward pass.
-        logits, loss = model.forward(xb, yb)
+        logits, loss = model.forward(device, xb, yb)
         # Backward pass.
         optimizer.zero_grad(set_to_none=True)
         # Backpropagate the loss.
