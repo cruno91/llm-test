@@ -4,8 +4,6 @@ from model_gpt import get_device
 from model_gpt import load_model
 from model_gpt import get_optimizer
 from model_gpt import write_model
-from model_gpt import get_batch
-from model_gpt import estimate_loss
 from model_gpt import train_model
 
 device = get_device()
