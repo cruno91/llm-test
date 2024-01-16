@@ -54,6 +54,6 @@ model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_he
 optimizer = get_optimizer(model, learning_rate)
 
 # Train the model.
-train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
+train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier=1)
 
 write_model("model-02.pkl", model)

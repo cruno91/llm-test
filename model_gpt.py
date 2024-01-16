@@ -259,9 +259,9 @@ def estimate_loss(model, eval_iterations, training_data_filemap, block_size, bat
     return out
 
 
-def get_batch(split, training_data_filemap, block_size, batch_size, encode, device):
+def get_batch(split, training_data_filemap, block_size, batch_size, encode, device, multiplier):
     # Get the data from the training or validation split.
-    data = get_random_chunk(split, training_data_filemap, block_size, batch_size, encode)
+    data = get_random_chunk(split, training_data_filemap, block_size, batch_size, encode, multiplier)
     # Get a random index.
     ix = torch.randint(len(data) - block_size, (batch_size,))
     # Get the data from the random index to the random index plus the block size.
@@ -300,7 +300,7 @@ def get_optimizer(model, learning_rate):
     return optimizer
 
 
-def train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device):
+def train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier):
     loss = None
     for i in range(max_iterations):
         # Print the training loss.
@@ -309,7 +309,7 @@ def train_model(model, max_iterations, optimizer, eval_iterations, training_data
             # We want to see convergence: Val loss should be lower than train loss.
             print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
         # Get the batch.
-        xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device)
+        xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device, multiplier)
         # Forward pass.
         logits, loss = model.forward(device, xb, yb)
         # Backward pass.
