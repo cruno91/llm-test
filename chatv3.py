@@ -38,10 +38,6 @@ tokenizer.enable_truncation(max_length=512)
 vocab_size = tokenizer.get_vocab_size()
 
 
-device = get_device()
-model = load_model("model-03.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
-
-
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
 def encode(text):
     return tokenizer.encode(text).ids
@@ -51,10 +47,13 @@ def decode(token_ids):
     return tokenizer.decode(token_ids)
 
 
+device = get_device()
+model = load_model("model-03.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
+
 while True:
     prompt = input("Enter a prompt: ")
     context = torch.tensor(encode(prompt), dtype=torch.long, device=device)
-    generated_chars = decode(model.generate(context.unsqueeze(0), max_new_tokens=150)[0].tolist())
+    generated_chars = decode(model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
 
     print(f'Completion:\n{generated_chars}')
 
