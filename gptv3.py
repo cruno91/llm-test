@@ -1,6 +1,3 @@
-import torch
-import mmap
-import random
 import argparse
 from tokenizers.implementations import ByteLevelBPETokenizer
 from tokenizers.processors import BertProcessing
