@@ -38,9 +38,15 @@ vocab_size = len(chars)
 
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
 strings_to_ints = {c: i for i, c in enumerate(chars)}
-encode = lambda s: [strings_to_ints[c] for c in s]
 ints_to_strings = {i: c for i, c in enumerate(chars)}
-decode = lambda x: ''.join([ints_to_strings[i] for i in x])
+
+
+def encode(s):
+    return [strings_to_ints[c] for c in s]
+
+
+def decode(x):
+    return ''.join([ints_to_strings[i] for i in x])
 
 
 training_data_filemap = {
@@ -48,12 +54,32 @@ training_data_filemap = {
     "val": "output_val.txt"
 }
 
-model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
+model = load_model(
+    "model-02.pkl",
+    vocab_size,
+    device,
+    n_embed,
+    block_size,
+    n_head,
+    n_layer,
+    dropout
+)
 
 # Create the optimizer.
 optimizer = get_optimizer(model, learning_rate)
 
 # Train the model.
-train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier=1)
+train_model(
+    model,
+    max_iterations,
+    optimizer,
+    eval_iterations,
+    training_data_filemap,
+    block_size,
+    batch_size,
+    encode,
+    device,
+    multiplier=1
+)
 
 write_model("model-02.pkl", model)

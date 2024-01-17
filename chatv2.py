@@ -30,9 +30,16 @@ vocab_size = len(chars)
 
 # Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
 strings_to_ints = {c: i for i, c in enumerate(chars)}
-encode = lambda s: [strings_to_ints[c] for c in s]
 ints_to_strings = {i: c for i, c in enumerate(chars)}
-decode = lambda x: ''.join([ints_to_strings[i] for i in x])
+
+
+def encode(s):
+    return [strings_to_ints[c] for c in s]
+
+
+def decode(x):
+    return ''.join([ints_to_strings[i] for i in x])
+
 
 device = get_device()
 model = load_model("model-02.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
@@ -43,4 +50,3 @@ while True:
     generated_chars = decode(model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
 
     print(f'Completion:\n{generated_chars}')
-

@@ -210,12 +210,12 @@ def get_random_chunk(split, training_data_filemap, block_size, batch_size, encod
         filename = training_data_filemap["val"]
 
     # Opened in binary mode.
-    with open(filename, 'rb') as f:
+    with open(filename, 'rb') as file:
         # Memory map the file. (Chunks of the file are loaded into memory as needed.)
-        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+        with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mm:
             # Determine the file size and a random position to start reading.
             file_size = len(mm)
-            start_pos = random.randint(0, (file_size) - block_size * batch_size)
+            start_pos = random.randint(0, file_size - block_size * batch_size)
 
             # Seek to the random position and read the block of text.
             mm.seek(start_pos)
@@ -277,8 +277,8 @@ def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_la
     if os.path.exists(model_path):
         print("Loading model parameters...")
         # Load the model from the .pkl file
-        with open(model_path, 'rb') as f:
-            m = pickle.load(f)
+        with open(model_path, 'rb') as file:
+            m = pickle.load(file)
         print("Model parameters loaded.")
     else:
         # Handle the case where the file doesn't exist
@@ -299,12 +299,32 @@ def get_optimizer(model, learning_rate):
     return optimizer
 
 
-def train_model(model, max_iterations, optimizer, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier):
+def train_model(
+        model,
+        max_iterations,
+        optimizer,
+        eval_iterations,
+        training_data_filemap,
+        block_size,
+        batch_size,
+        encode,
+        device,
+        multiplier
+):
     loss = None
     for i in range(max_iterations):
         # Print the training loss.
         if i % eval_iterations == 0:
-            losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier)
+            losses = estimate_loss(
+                model,
+                eval_iterations,
+                training_data_filemap,
+                block_size,
+                batch_size,
+                encode,
+                device,
+                multiplier
+            )
             # We want to see convergence: Val loss should be lower than train loss.
             print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
         # Get the batch.
@@ -322,8 +342,8 @@ def train_model(model, max_iterations, optimizer, eval_iterations, training_data
 
 
 def write_model(file_path, model):
-    with open(file_path, 'wb') as f:
-        pickle.dump(model, f)
+    with open(file_path, 'wb') as file:
+        pickle.dump(model, file)
     print("Model saved.")
 
 
@@ -336,4 +356,3 @@ def get_device():
         device = torch.device("cpu")
         print("MPS device not found.")
     return device
-
