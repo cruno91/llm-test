@@ -361,8 +361,11 @@ def get_device():
     # Check if Metal is available.
     if torch.backends.mps.is_available():
         device = torch.device("mps")
-        print("MPS device found.")
+        print("MPS (Metal/Apple Silicon) device found.")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("CUDA (nVidia) device found.")
     else:
         device = torch.device("cpu")
-        print("MPS device not found.")
+        print("GPU device not found. Falling back to CPU.")
     return device
