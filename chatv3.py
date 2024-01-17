@@ -1,7 +1,7 @@
-import torch
-import argparse
 from tokenizers.implementations import ByteLevelBPETokenizer
 from tokenizers.processors import BertProcessing
+import torch
+import argparse
 
 from model_gpt import get_device
 from model_gpt import load_model

@@ -1,10 +1,10 @@
 import argparse
 
 from model_gpt import get_device
-from model_gpt import load_model
 from model_gpt import get_optimizer
-from model_gpt import write_model
+from model_gpt import load_model
 from model_gpt import train_model
+from model_gpt import write_model
 
 device = get_device()
 

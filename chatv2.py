@@ -1,5 +1,5 @@
-import torch
 import argparse
+import torch
 
 from model_gpt import get_device
 from model_gpt import load_model

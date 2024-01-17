@@ -1,11 +1,10 @@
 import mmap
 import os
+import pickle
 import random
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pickle
 
 
 # Define the head.
