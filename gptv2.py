@@ -17,9 +17,9 @@ args = parser.parse_args()
 batch_size = args.batch_size if args.batch_size is not None else 128  # Change for GPU. (4 test, 128 train)
 block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 # Does not affect memory.
-max_iterations = 1000  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
+max_iterations = 65000  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
 learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
-eval_iterations = 250  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
+eval_iterations = 5000  # Change for purpose. (v1 250 test, 500 train) - (v2 100 test, x train)
 # Affect memory.
 n_embed = 384  # Amount of neurons in the embedding layer.
 n_head = 8  # Amount of heads (in parallel). (v1 4 for mps 8 for cuda) - (v2 1 test)
