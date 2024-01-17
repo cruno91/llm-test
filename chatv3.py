@@ -1,10 +1,10 @@
 from tokenizers.implementations import ByteLevelBPETokenizer
 from tokenizers.processors import BertProcessing
-import torch
 import argparse
 
 from model_gpt import get_device
 from model_gpt import load_model
+from model_gpt import prompt
 
 parser = argparse.ArgumentParser("Example GPT LLM.")
 parser.add_argument("--batch-size", type=int, help="train the model with a specified batch size")
@@ -50,10 +50,4 @@ def decode(token_ids):
 device = get_device()
 model = load_model("model-03.pkl", vocab_size, device, n_embed, block_size, n_head, n_layer, dropout)
 
-while True:
-    prompt = input("Enter a prompt: ")
-    context = torch.tensor(encode(prompt), dtype=torch.long, device=device)
-    generated_chars = decode(model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
-
-    print(f'Completion:\n{generated_chars}')
-
+prompt(model, device, encode, decode, block_size)

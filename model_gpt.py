@@ -347,6 +347,16 @@ def write_model(file_path, model):
     print("Model saved.")
 
 
+def prompt(model, device, encode, decode, block_size):
+    while True:
+        prompt = input("Enter a prompt: ")
+        context = torch.tensor(encode(prompt), dtype=torch.long, device=device)
+        generated_chars = decode(
+            model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
+
+        print(f'Completion:\n{generated_chars}')
+
+
 def get_device():
     # Check if Metal is available.
     if torch.backends.mps.is_available():
