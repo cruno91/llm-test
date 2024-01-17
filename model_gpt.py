@@ -4,7 +4,7 @@ import pickle
 import random
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as f
 
 
 # Define the head.
@@ -47,7 +47,7 @@ class Head(nn.Module):
         # For each value that's 0, make it -infinity so that softmax will take these values and exponentiate normalize
         # them, which will turn -infinity to 0, sharpen the distribution, and make the model more confident.
         weights = weights.masked_fill(self.tril[:time, :time] == 0, float('-inf'))
-        weights = F.softmax(weights, dim=-1)
+        weights = f.softmax(weights, dim=-1)
         weights = self.dropout(weights)
         # Perform the weighted aggregation of the values.
         v = self.value(x)
@@ -181,7 +181,7 @@ class GPTLanguageModel(nn.Module):
             # Flatten the targets.
             targets = targets.view(batch * time)
             # Get the loss.
-            loss = F.cross_entropy(logits, targets)
+            loss = f.cross_entropy(logits, targets)
         return logits, loss
 
     # Generate text.
@@ -194,7 +194,7 @@ class GPTLanguageModel(nn.Module):
             # Get the last token.
             logits = logits[:, -1, :]
             # Get the probabilities.
-            probabilities = F.softmax(logits, dim=-1)
+            probabilities = f.softmax(logits, dim=-1)
             # Get the index of the next token.
             index_next = torch.multinomial(probabilities, num_samples=1)
             # Append the index of the next token to the index.
