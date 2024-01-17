@@ -236,7 +236,7 @@ def get_random_chunk(split, training_data_filemap, block_size, batch_size, encod
 # which is useful for inference or evaluation when you don't need to compute gradients.
 # This reduces memory consumption and speeds up the computations.
 @torch.no_grad()
-def estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device):
+def estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier):
     # Create a dictionary to store the losses.
     out = {}
     # Set the model to evaluation mode.
@@ -247,7 +247,7 @@ def estimate_loss(model, eval_iterations, training_data_filemap, block_size, bat
         # Get the losses.
         for k in range(eval_iterations):
             # Get the batch.
-            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device)
+            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device, multiplier)
             # Forward pass.
             logits, loss = model(device, x, y)
             # Store the loss.
@@ -305,7 +305,7 @@ def train_model(model, max_iterations, optimizer, eval_iterations, training_data
     for i in range(max_iterations):
         # Print the training loss.
         if i % eval_iterations == 0:
-            losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device)
+            losses = estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier)
             # We want to see convergence: Val loss should be lower than train loss.
             print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
         # Get the batch.
