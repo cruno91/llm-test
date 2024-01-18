@@ -1,93 +1,17 @@
+import mmap
+import os
+import pickle
+import random
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
-# Check if Metal is available.
-if torch.backends.mps.is_available():
-    device = torch.device("mps")
-    print("MPS device found.")
-else:
-    device = torch.device("cpu")
-    print("MPS device not found.")
-
-# Hyperparameters.
-block_size = 64  # Change for GPU. (8 test, 64 train)
-batch_size = 128  # Change for GPU. (4 test, 128 train)
-max_iterations = 3000  # Change for GPU. (1000 test, 3000 train)
-learning_rate = 3e-4  # 3e-3 = 0.003 - 3e-4, 1e-3, 1e-4
-eval_iterations = 500  # Change for purpose. (250 test, 500 train)
-n_embed = 384  # Amount of neurons in the embedding layer.
-n_head = 4  # Amount of heads (in parallel). (4 for mps 8 for cuda)
-n_layer = 4  # Amount of layers (equal to number of decoder blocks). (4 for mps 8 for cuda)
-dropout = 0.2  # Dropout rate. 20% of the neurons will be turned off.
-
-
-# Open the text file.
-with open('wizard_of_oz.txt', 'r', encoding='utf-8') as file:
-    text = file.read()
-# Get the set of unique characters in the text.
-chars = sorted(list(set(text)))
-vocab_size = len(chars)
-
-# Create a tokenizer to convert between characters and numerical indices via an encoder and a decoder.
-strings_to_ints = {c: i for i, c in enumerate(chars)}
-encode = lambda s: [strings_to_ints[c] for c in s]
-ints_to_strings = {i: c for i, c in enumerate(chars)}
-decode = lambda x: ''.join([ints_to_strings[i] for i in x])
-
-# Convert the text to integers.
-data = torch.tensor(encode(text), dtype=torch.long)
-
-# Get the training and validation splits.
-n = int(0.8*len(data))
-train_data, val_data = data[:n], data[n:]
-
-
-# Get a batch of data.
-def get_batch(split):
-    # Get the data from the training or validation split.
-    data = train_data if split == "train" else val_data
-    # Get a random index.
-    ix = torch.randint(len(data) - block_size, (batch_size,))
-    # Get the data from the random index to the random index plus the block size.
-    x = torch.stack([data[i:i+block_size] for i in ix])
-    # Get the data from the random index plus 1 to the random index plus the block size plus 1.
-    y = torch.stack([data[i+1:i+block_size+1] for i in ix])
-    # Move the data to the device.
-    x, y = x.to(device), y.to(device)
-    return x, y
-
-
-# Estimate the training loss.
-@torch.no_grad()
-def estimate_loss():
-    # Create a dictionary to store the losses.
-    out = {}
-    # Set the model to evaluation mode.
-    model.eval()
-    for split in ["train", "val"]:
-        # Create a tensor to store the losses.
-        losses = torch.zeros(eval_iterations)
-        # Get the losses.
-        for k in range(eval_iterations):
-            # Get the batch.
-            x, y = get_batch(split)
-            # Forward pass.
-            logits, loss = model(x, y)
-            # Store the loss.
-            losses[k] = loss.item()
-        # Get the mean of the losses.
-        out[split] = losses.mean()
-    # Set the model back to training mode.
-    model.train()
-    return out
+import torch.nn.functional as f
 
 
 # Define the head.
 # Scaled dot production attention.
 # One head of self-attention.
 class Head(nn.Module):
-    def __init__(self, head_size):
+    def __init__(self, n_embed, head_size, block_size, dropout):
         super().__init__()
         # Query, key, and value.
         # Keys and queries dot product together.
@@ -117,13 +41,13 @@ class Head(nn.Module):
         # (batch, time, time) * (1/sqrt(head size)).
         # Do this to prevent the dot product from getting too large. Think of trying to listen to a multiple
         # conversations at once.  You can't do it if some voices are too loud, drowning out the others.
-        weights = q @ k.transpose(-1, -2) * k.shape[-1]** -0.5  # Weights are attention scores.
+        weights = q @ k.transpose(-2, -1) * k.shape[-1] ** -0.5  # Weights are attention scores.
         # Mask out the upper triangular part of the weights.
         # As the time step advances, the model can only see the past.
         # For each value that's 0, make it -infinity so that softmax will take these values and exponentiate normalize
         # them, which will turn -infinity to 0, sharpen the distribution, and make the model more confident.
         weights = weights.masked_fill(self.tril[:time, :time] == 0, float('-inf'))
-        weights = F.softmax(weights, dim=-1)
+        weights = f.softmax(weights, dim=-1)
         weights = self.dropout(weights)
         # Perform the weighted aggregation of the values.
         v = self.value(x)
@@ -134,10 +58,10 @@ class Head(nn.Module):
 # Define the multi-head attention.
 # Multiple heads of attention in parallel.
 class MultiHeadAttention(nn.Module):
-    def __init__(self, num_heads, head_size):
+    def __init__(self, n_embed, num_heads, head_size, block_size, dropout):
         super().__init__()
         # Module list: Heads in parallel for each head.
-        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
+        self.heads = nn.ModuleList([Head(n_embed, head_size, block_size, dropout) for _ in range(num_heads)])
         # Projection from the heads to the embedding size.
         self.proj = nn.Linear(head_size * num_heads, n_embed)
         # Dropout.
@@ -155,7 +79,7 @@ class MultiHeadAttention(nn.Module):
 
 # Define the feed forward layer.
 class FeedForward(nn.Module):
-    def __init__(self, n_embed):
+    def __init__(self, n_embed, dropout):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_embed, 4 * n_embed),
@@ -170,7 +94,7 @@ class FeedForward(nn.Module):
 
 # Define the transformer block.
 class Block(nn.Module):
-    def __init__(self, n_embed, n_head):
+    def __init__(self, n_embed, block_size, dropout, n_head):
         # The n_embed is the amount of neurons in the embedding layer.
         # AKA the amount of channels or heads we'd like.
         super().__init__()
@@ -178,9 +102,9 @@ class Block(nn.Module):
         head_size = n_embed // n_head
         # Multi-head attention layer.
         # The sa is self-attention.
-        self.sa = MultiHeadAttention(n_head, head_size)
+        self.sa = MultiHeadAttention(n_embed, n_head, head_size, block_size, dropout)
         # Feedforward layer.
-        self.ffwd = FeedForward(n_embed)
+        self.ffwd = FeedForward(n_embed, dropout)
         # Layer normalization.
         self.ln1 = nn.LayerNorm(n_embed)
         self.ln2 = nn.LayerNorm(n_embed)
@@ -200,7 +124,7 @@ class Block(nn.Module):
 
 # Define the model.
 class GPTLanguageModel(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self, vocab_size, n_embed, block_size, n_head, n_layer, dropout):
         super().__init__()
         # Embedding layer.
         self.token_embedding_table = nn.Embedding(vocab_size, n_embed)
@@ -210,7 +134,7 @@ class GPTLanguageModel(nn.Module):
         # How many decoder layers to use simultaneously.
         # Asterisk is for repeating code in the brackets.
         # Will make 4 of the "Block"s (decoder layers) simultaneously.
-        self.blocks = nn.Sequential(*[Block(n_embed, n_head=n_head) for _ in range(n_layer)])
+        self.blocks = nn.Sequential(*[Block(n_embed, block_size, dropout, n_head=n_head) for _ in range(n_layer)])
         # Final layer normalization.
         # Helps model converge better.
         self.ln_f = nn.LayerNorm(n_embed)
@@ -231,7 +155,7 @@ class GPTLanguageModel(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     # Forward pass.
-    def forward(self, index, targets=None):
+    def forward(self, device, index, targets=None):
         batch, time = index.shape
         # index and targets are both (batch, time) tensors of integers.
         token_embeddings = self.token_embedding_table(index)  # (batch, time, channels)
@@ -257,50 +181,191 @@ class GPTLanguageModel(nn.Module):
             # Flatten the targets.
             targets = targets.view(batch * time)
             # Get the loss.
-            loss = F.cross_entropy(logits, targets)
+            loss = f.cross_entropy(logits, targets)
         return logits, loss
 
     # Generate text.
-    def generate(self, index, max_new_tokens):
+    def generate(self, index, block_size, device, max_new_tokens):
         for _ in range(max_new_tokens):
+            # Crop index to the last block_size tokens.
+            index_cond = index[:, -block_size:]
             # Get the logits.
-            logits, _ = self.forward(index)
+            logits, loss = self.forward(device, index_cond)
             # Get the last token.
             logits = logits[:, -1, :]
             # Get the probabilities.
-            probabilities = F.softmax(logits, dim=-1)
+            probabilities = f.softmax(logits, dim=-1)
             # Get the index of the next token.
             index_next = torch.multinomial(probabilities, num_samples=1)
             # Append the index of the next token to the index.
-            index = torch.cat((index, index_next), dim=-1)
+            index = torch.cat((index, index_next), dim=1)
         return index
 
 
-# Create the model.
-m = GPTLanguageModel(vocab_size)
-# Move the model to the device.
-model = m.to(device)
+# Memory map for using small snippets of text from a single file of any size.
+def get_random_chunk(split, training_data_filemap, block_size, batch_size, encode,  multiplier=1):
+    if split == 'train':
+        filename = training_data_filemap["train"]
+    else:
+        filename = training_data_filemap["val"]
 
-# Create the optimizer.
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    # Opened in binary mode.
+    with open(filename, 'rb') as file:
+        # Memory map the file. (Chunks of the file are loaded into memory as needed.)
+        with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            # Determine the file size and a random position to start reading.
+            file_size = len(mm)
+            start_pos = random.randint(0, file_size - block_size * batch_size)
 
-# Train the model.
-for i in range(max_iterations):
-    # Print the training loss.
-    if i % eval_iterations == 0:
-        losses = estimate_loss()
-        print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
+            # Seek to the random position and read the block of text.
+            mm.seek(start_pos)
+            block = mm.read(block_size * batch_size * multiplier - 1)  # Increase the multiplier as needed
 
-    # Get the batch.
-    xb, yb = get_batch("train")
-    # Forward pass.
-    logits, loss = model.forward(xb, yb)
-    # Backward pass.
-    optimizer.zero_grad(set_to_none=True)
-    # Backpropagate the loss.
-    loss.backward()
-    # Update the weights.
-    optimizer.step()
+            # Decode the block to a string, ignoring any invalid byte sequences.
+            decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
 
-# Print the loss.
-print(loss.item())
+            # Train and test splits.
+            data = torch.tensor(encode(decoded_block), dtype=torch.long)
+
+    return data
+
+
+# Estimate the loss.
+# @torch.no_grad() decorator is used in PyTorch to disable gradient calculation.
+# which is useful for inference or evaluation when you don't need to compute gradients.
+# This reduces memory consumption and speeds up the computations.
+@torch.no_grad()
+def estimate_loss(model, eval_iterations, training_data_filemap, block_size, batch_size, encode, device, multiplier):
+    # Create a dictionary to store the losses.
+    out = {}
+    # Set the model to evaluation mode.
+    model.eval()
+    for split in ["train", "val"]:
+        # Create a tensor to store the losses.
+        losses = torch.zeros(eval_iterations)
+        # Get the losses.
+        for k in range(eval_iterations):
+            # Get the batch.
+            x, y = get_batch(split, training_data_filemap, block_size, batch_size, encode, device, multiplier)
+            # Forward pass.
+            logits, loss = model(device, x, y)
+            # Store the loss.
+            losses[k] = loss.item()
+        # Get the mean of the losses.
+        out[split] = losses.mean()
+    # Set the model back to training mode.
+    model.train()
+    return out
+
+
+def get_batch(split, training_data_filemap, block_size, batch_size, encode, device, multiplier):
+    # Get the data from the training or validation split.
+    data = get_random_chunk(split, training_data_filemap, block_size, batch_size, encode, multiplier)
+    # Get a random index.
+    ix = torch.randint(len(data) - block_size, (batch_size,))
+    # Get the data from the random index to the random index plus the block size.
+    x = torch.stack([data[i:i + block_size] for i in ix])
+    # Get the data from the random index plus 1 to the random index plus the block size plus 1.
+    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
+    # Move the data to the device.
+    x, y = x.to(device), y.to(device)
+    return x, y
+
+
+def load_model(model_path, vocab_size, device, n_embed, block_size, n_head, n_layer, dropout):
+    # Check if the .pkl file exists
+    if os.path.exists(model_path):
+        print("Loading model parameters...")
+        # Load the model from the .pkl file
+        with open(model_path, 'rb') as file:
+            m = pickle.load(file)
+        print("Model parameters loaded.")
+    else:
+        # Handle the case where the file doesn't exist
+        print(f"Model file {model_path} not found. Loading a new one.")
+        # Initialize a new model instance
+        m = GPTLanguageModel(vocab_size, n_embed, block_size, n_head, n_layer, dropout)
+
+    # Set the model to the specified device
+    model = m.to(device)
+    print("Model loaded.")
+    return model
+
+
+def get_optimizer(model, learning_rate):
+    # Create the optimizer.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    print("AdamW optimizer created.")
+    return optimizer
+
+
+def train_model(
+        model,
+        max_iterations,
+        optimizer,
+        eval_iterations,
+        training_data_filemap,
+        block_size,
+        batch_size,
+        encode,
+        device,
+        multiplier
+):
+    loss = None
+    for i in range(max_iterations):
+        # Print the training loss.
+        if i % eval_iterations == 0:
+            losses = estimate_loss(
+                model,
+                eval_iterations,
+                training_data_filemap,
+                block_size,
+                batch_size,
+                encode,
+                device,
+                multiplier
+            )
+            # We want to see convergence: Val loss should be lower than train loss.
+            print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
+        # Get the batch.
+        xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device, multiplier)
+        # Forward pass.
+        logits, loss = model.forward(device, xb, yb)
+        # Backward pass.
+        optimizer.zero_grad(set_to_none=True)
+        # Backpropagate the loss.
+        loss.backward()
+        # Update the weights.
+        optimizer.step()
+    if loss is not None:
+        print(loss.item())
+
+
+def write_model(file_path, model):
+    with open(file_path, 'wb') as file:
+        pickle.dump(model, file)
+    print("Model saved.")
+
+
+def prompt(model, device, encode, decode, block_size):
+    while True:
+        proompt = input("Enter a prompt: ")
+        context = torch.tensor(encode(proompt), dtype=torch.long, device=device)
+        generated_chars = decode(
+            model.generate(context.unsqueeze(0), block_size, device, max_new_tokens=150)[0].tolist())
+
+        print(f'Completion:\n{generated_chars}')
+
+
+def get_device():
+    # Check if Metal is available.
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print("MPS (Metal/Apple Silicon) device found.")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("CUDA (nVidia) device found.")
+    else:
+        device = torch.device("cpu")
+        print("GPU device not found. Falling back to CPU.")
+    return device
