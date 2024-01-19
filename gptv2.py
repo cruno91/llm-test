@@ -1,10 +1,14 @@
 import argparse
+import time
 
 from model_gpt import get_device
 from model_gpt import get_optimizer
 from model_gpt import load_model
 from model_gpt import train_model
 from model_gpt import write_model
+from model_gpt import setup_logging
+from model_gpt import start_log_training_session
+from model_gpt import finish_log_training_session
 
 device = get_device()
 
@@ -68,6 +72,27 @@ model = load_model(
 # Create the optimizer.
 optimizer = get_optimizer(model, learning_rate)
 
+hyperparameters = {
+    "batch_size": batch_size,
+    "block_size": block_size,
+    "max_iterations": max_iterations,
+    "learning_rate": learning_rate,
+    "eval_iterations": eval_iterations,
+    "n_embed": n_embed,
+    "n_head": n_head,
+    "n_layer": n_layer,
+    "dropout": dropout
+}
+
+model_name = "model-02"
+
+log_file_path = setup_logging(model_name)
+
+# Track when the training starts
+start_time = time.time()
+
+start_log_training_session(log_file_path, hyperparameters)
+
 # Train the model.
 train_model(
     model,
@@ -79,7 +104,13 @@ train_model(
     batch_size,
     encode,
     device,
+    log_file_path,
     multiplier=1
 )
 
-write_model("model-02.pkl", model)
+# Calculate the training duration
+training_duration = time.time() - start_time
+
+finish_log_training_session(log_file_path, training_duration)
+
+write_model(model_name + ".pkl", model)

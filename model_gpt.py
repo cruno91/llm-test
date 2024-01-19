@@ -2,6 +2,8 @@ import mmap
 import os
 import pickle
 import random
+from datetime import datetime
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
@@ -309,6 +311,7 @@ def train_model(
         batch_size,
         encode,
         device,
+        log_file_path,
         multiplier
 ):
     loss = None
@@ -326,7 +329,7 @@ def train_model(
                 multiplier
             )
             # We want to see convergence: Val loss should be lower than train loss.
-            print(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}")
+            log_training_step(f"step: {i}, train loss: {losses['train']:.3f}, val losses: {losses['val']:.3f}", log_file_path)
         # Get the batch.
         xb, yb = get_batch("train", training_data_filemap, block_size, batch_size, encode, device, multiplier)
         # Forward pass.
@@ -338,7 +341,7 @@ def train_model(
         # Update the weights.
         optimizer.step()
     if loss is not None:
-        print(loss.item())
+        log_training_step(f"Final loss: {loss.item()}", log_file_path)
 
 
 def write_model(file_path, model):
@@ -369,3 +372,49 @@ def get_device():
         device = torch.device("cpu")
         print("GPU device not found. Falling back to CPU.")
     return device
+
+
+def setup_logging(model_name):
+    # Create a "logs" directory if it does not exist
+    logs_dir = "logs"
+    os.makedirs(logs_dir, exist_ok=True)
+
+    # Create a directory for the specific model within the "logs" directory
+    model_logs_dir = os.path.join(logs_dir, model_name)
+    os.makedirs(model_logs_dir, exist_ok=True)
+
+    # Format the current date and time to use in the filename
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Create a log file named with the current date and time
+    log_file_name = f"{current_time}.log"
+    log_file_path = os.path.join(model_logs_dir, log_file_name)
+
+    return log_file_path
+
+
+def start_log_training_session(log_file_path, hyperparameters):
+    # Format the current date and time to use in the filename
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    with open(log_file_path, 'w') as log_file:
+        # Write the start time, hyperparameters, and training duration to the log file
+        log_file.write("==========================================\n")
+        log_file.write(f"Training started at: {current_time}\n")
+        log_file.write("------------------------------------------\n")
+        log_file.write("Hyperparameters:\n")
+        for param, value in hyperparameters.items():
+            log_file.write(f"{param}: {value}\n")
+        log_file.write("------------------------------------------\n")
+
+
+def finish_log_training_session(log_file_path, training_duration):
+    with open(log_file_path, 'w') as log_file:
+        log_file.write(f"Training duration: {training_duration} seconds\n")
+        log_file.write("==========================================\n")
+
+
+def log_training_step(message, log_file_path):
+    print(message)  # Print to stdout
+    with open(log_file_path, 'a') as log_file:  # Open the log file in append mode
+        log_file.write(message + '\n')  # Write to the log file
