@@ -1,4 +1,3 @@
-import argparse
 import time
 
 from model_gpt import get_device
@@ -12,13 +11,9 @@ from model_gpt import finish_log_training_session
 
 device = get_device()
 
-parser = argparse.ArgumentParser("Example GPT LLM.")
-parser.add_argument("--batch-size", type=int, help="train the model with a specified batch size")
-args = parser.parse_args()
-
 # Hyperparameters.
 # Affects memory.
-batch_size = args.batch_size if args.batch_size is not None else 128  # Change for GPU. (4 test, 128 train)
+batch_size = 128  # Change for GPU. (4 test, 128 train)
 block_size = 64  # Change for GPU. (v1 8 test, 64 train) - (v2 32 test, x train)
 # Does not affect memory.
 max_iterations = 65000  # Change for GPU. (v1 1000 test, 3000 train) - (v2 200 test, x train)
