@@ -415,8 +415,9 @@ def finish_log_training_session(log_file_path, training_duration):
 
 
 def log_training_step(message, log_file_path):
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    print(current_time)
     print(message)  # Print to stdout
     with open(log_file_path, 'a') as log_file:  # Open the log file in append mode
         log_file.write(message + '\n')  # Write to the log file
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         log_file.write(current_time + '\n')
