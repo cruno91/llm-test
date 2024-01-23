@@ -1,0 +1,4 @@
+tokenizers~=0.15.0
+torch~=2.1.2
+numpy~=1.26.2
+tqdm~=4.66.1
