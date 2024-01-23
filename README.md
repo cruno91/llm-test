@@ -6,6 +6,13 @@ This is an example GPT library written by hand by following the
 [LLM from scratch](https://www.youtube.com/watch?v=UU1WVnMk4E8) tutorial by 
 [Infatoshi](https://github.com/Infatoshi).
 
+The main differences between this repository and the tutorial are mostly
+the model is written as a library of classes and functions, and not as single
+scripts. The purpose being to be able to have higher re-use.
+
+Additionally, I have added logging for training as I found that tracking the
+output of training to be cumbersome without it.
+
 See [torch_notes.py](torch_notes.py) and the comments in the code, along with
 the [commit log](https://github.com/cruno91/llm-test) and in my 
 [GPT v1 repo](https://github.com/cruno91/test-gpt-v1) for the progress I made
