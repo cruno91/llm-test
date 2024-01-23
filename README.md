@@ -49,7 +49,7 @@ I use PyCharm to run scripts, but you can also run them from the command line.
 1. Run the `gptv3.py` script for sub-word training
 2. Run the `gptv2.py` script for character training
 
-My GPU is an Apple Silicon M2 Max with 64GB VRAM.
+My GPU is an Apple Silicon M2 Max with 64GB shared RAM.
 
 Adapt the hyper-parameters in the `gptv2.py` and `gptv3.py` scripts to fit your
 GPU and desired training time.
