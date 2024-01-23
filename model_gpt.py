@@ -409,7 +409,7 @@ def start_log_training_session(log_file_path, hyperparameters):
 
 
 def finish_log_training_session(log_file_path, training_duration):
-    with open(log_file_path, 'w') as log_file:
+    with open(log_file_path, 'a') as log_file:
         log_file.write(f"Training duration: {training_duration} seconds\n")
         log_file.write("==========================================\n")
 
