@@ -10,11 +10,13 @@ The main differences between this repository and the tutorial are mostly
 the model is written as a library of classes and functions, and not as single
 scripts. The purpose being to be able to have higher re-use.
 
+I also added sub-word tokenization using the ByteLevelBPETokenizer.
+
 Additionally, I have added logging for training as I found that tracking the
 output of training to be cumbersome without it.
 
 See [torch_notes.py](torch_notes.py) and the comments in the code, along with
-the [commit log](https://github.com/cruno91/llm-test) and in my 
+the [commit log](https://github.com/cruno91/llm-test) and in my
 [GPT v1 repo](https://github.com/cruno91/test-gpt-v1) for the progress I made
 learning how to write LLM models using Bigram and Transformer-based 
 architectures.
