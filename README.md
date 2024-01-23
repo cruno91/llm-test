@@ -12,6 +12,9 @@ the [commit log](https://github.com/cruno91/llm-test) and in my
 learning how to write LLM models using Bigram and Transformer-based 
 architectures.
 
+Metal and CUDA are supported, but I have only tested this on Apple Silicon.
+There is fallback for CPU-only training, but it is not recommended.
+
 I use PyCharm to run scripts, but you can also run them from the command line.
 
 ## Requirements
