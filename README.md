@@ -25,6 +25,8 @@ Metal and CUDA are supported, but I have only tested this on Apple Silicon.
 There is fallback for CPU-only training, but it is not recommended.
 
 I use PyCharm to run scripts, but you can also run them from the command line.
+The [community edition of PyCharm](https://www.jetbrains.com/pycharm/download/)
+is free.
 
 ## Requirements
 
@@ -46,16 +48,22 @@ I use PyCharm to run scripts, but you can also run them from the command line.
 
 ## Training
 
-1. Run the `gptv3.py` script for sub-word training
-2. Run the `gptv2.py` script for character training
-
 My GPU is an Apple Silicon M2 Max with 64GB shared RAM.
 
-Adapt the hyper-parameters in the `gptv2.py` and `gptv3.py` scripts to fit your
+Adapt the hyperparameters in the `gptv2.py` and `gptv3.py` scripts to fit your
 GPU and desired training time.
 
-There are some baseline exapmles of hyper-parameters to use in the code
+The `gptv2` training takes about 10 hours for the default hyperparameters with
+my GPU.
+
+There are some baseline examples of hyperparameters to use in the code
 comments.
+
+I also recommend using [asitop](https://github.com/tlkh/asitop) to monitor your
+GPU usage and temperature while training on Apple Silicon devices.
+
+1. Run the `gptv3.py` script for sub-word training
+2. Run the `gptv2.py` script for character training
 
 ## Results
 
@@ -64,9 +72,9 @@ Training logs are saved in the `logs` directory for each model like so:
 - `logs/model-02/2021-03-02_22-00-00.log` for the character model
 - `logs/model-03/2021-03-02_22-00-00.log` for the sub-word model
 
-# Testing
+## Testing
 
-Ensure you update the chat scripts' hyper-parameters to match those from the
+Ensure you update the chat scripts' hyperparameters to match those from the
 training scripts if you changed them.
 Once you have some trained models, you can test them by running the following:
 
