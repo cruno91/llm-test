@@ -53,8 +53,8 @@ My GPU is an Apple Silicon M2 Max with 64GB shared RAM.
 Adapt the hyperparameters in the `gptv2.py` and `gptv3.py` scripts to fit your
 GPU and desired training time.
 
-The `gptv2` training takes about 10 hours for the default hyperparameters with
-my GPU.
+Both the `gptv2` and `gptv3` training take about 10 hours for the default
+hyperparameters with my GPU.
 
 There are some baseline examples of hyperparameters to use in the code
 comments.
