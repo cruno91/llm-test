@@ -41,9 +41,9 @@ is free.
    (openwebtext.tar.xz)
 3. Extract outside the root of this repository in an directory called 
    `openwebtext`
-4. Run the `bep_training_data.py` script for generating the sub-word
+4. Run the `training_data_subword.py` script for generating the sub-word
    vocabulary.
-5. Use the `character_training_data.py` script for generating the character 
+5. Use the `training_data_character.py` script for generating the character
    vocabulary
 
 ## Training
