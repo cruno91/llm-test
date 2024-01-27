@@ -80,3 +80,28 @@ Once you have some trained models, you can test them by running the following:
 
 1. Run `chatv3.py` script for testing sub-word trained model
 2. Run `chatv2.py` script for testing character trained model
+
+## Examples
+
+### Character Vocabulary
+
+Run: `python gptv2.py`
+
+```
+MPS (Metal/Apple Silicon) device found.
+Model file model-02.pkl not found. Loading a new one.
+Model loaded.
+AdamW optimizer created.
+step: 0, train loss: 10.514, val losses: 10.514
+2024-01-22_22-23-04
+step: 3000, train loss: 1.415, val losses: 1.413
+2024-01-22_22-49-24
+step: 6000, train loss: 1.342, val losses: 1.336
+2024-01-22_23-16-17
+step: 9000, train loss: 1.303, val losses: 1.308
+2024-01-23_02-07-12
+step: 12000, train loss: 1.280, val losses: 1.280
+2024-01-23_05-53-51
+Final loss: 1.1727381944656372
+Model saved.
+```
