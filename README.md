@@ -85,6 +85,9 @@ Once you have some trained models, you can test them by running the following:
 
 ### Character Vocabulary
 
+- Training time: ~18.2 hours
+- Loss: 1.2316091060638428
+
 Run: `python gptv2.py`
 
 ```
