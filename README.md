@@ -87,6 +87,7 @@ Once you have some trained models, you can test them by running the following:
 
 - Training time: ~18.2 hours
 - Loss: 1.2316091060638428
+- Number of parameters: 22,941,696
 
 Run: `python gptv2.py`
 
@@ -107,4 +108,16 @@ step: 12000, train loss: 1.280, val losses: 1.280
 2024-01-23_05-53-51
 Final loss: 1.1727381944656372
 Model saved.
+```
+
+- Run: `python chatv2.py`
+
+```
+MPS (Metal/Apple Silicon) device found.
+Loading model parameters...
+Model parameters loaded.
+Model loaded.
+Enter a prompt: Hello world.
+Completion:
+Hello world. Reform Command has made the strong number of Karley Minical Care comments from the offense there are some many of threats with an attest general who 
 ```
