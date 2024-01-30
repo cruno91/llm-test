@@ -8,6 +8,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 
+# Todo: Convert hyperparameters to configuration class
+# Todo: Allow hyperparameters to be passed in as arguments
+
 
 # Define the head.
 # Scaled dot production attention.
